@@ -38,6 +38,7 @@
     @media (max-width: 820px) { .charts { grid-template-columns: 1fr; } }
     .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
     .chart-box h3 { margin: 0 0 8px; font-size: 0.88rem; color: var(--navy); }
+    .legend-mini { font-size: 0.72rem; color: var(--slate); margin-bottom: 6px; display: flex; gap: 14px; flex-wrap: wrap; }
     canvas { width: 100%; height: 225px; display: block; }
     footer { text-align: center; padding: 18px; font-size: 0.78rem; color: var(--slate); }
   </style>
@@ -55,11 +56,11 @@
   <aside class="panel">
     <h2>1. Policy Scenarios (PND Onset: 2026.75)</h2>
     <div class="preset-grid">
-      <button onclick="setPreset('sq')">01 Status Quo</button>
-      <button onclick="setPreset('lag')">02 Lagged Trans.</button>
-      <button onclick="setPreset('bud')">03 Budget Only</button>
-      <button onclick="setPreset('eco')">04 Eco + Reten.</button>
-      <button class="primary" onclick="setPreset('pnd')">05 PND 2026–2030 Integral</button>
+      <button type="button" onclick="setPreset('sq')">01 Status Quo</button>
+      <button type="button" onclick="setPreset('lag')">02 Lagged Trans.</button>
+      <button type="button" onclick="setPreset('bud')">03 Budget Only</button>
+      <button type="button" onclick="setPreset('eco')">04 Eco + Reten.</button>
+      <button type="button" class="primary" onclick="setPreset('pnd')">05 PND 2026–2030 Integral</button>
     </div>
 
     <h2>2. PND 2026–2030 Policy Levers</h2>
@@ -91,22 +92,38 @@
       <div class="slider-label"><span>Diaspora Repatriation Rate</span><span class="val" id="v_rep">0.03</span></div>
       <input type="range" id="s_rep" min="0.01" max="0.10" step="0.005" value="0.03" oninput="runSim()" />
     </div>
-    <button style="width:100%; margin-top:6px;" onclick="downloadCSV()">Download Simulated CSV (2015–2050)</button>
+    <button type="button" style="width:100%; margin-top:6px;" onclick="downloadCSV()">Download Simulated CSV (2015–2050)</button>
   </aside>
 
   <main>
     <div class="kpis">
-      <div class="kpi"><div class="tit">Industrial Solutions (2050)</div><div class="num" id="k_sol">&mdash;</div><div class="sub" id="k_sol_d">vs. 2,708 SQ</div></div>
-      <div class="kpi"><div class="tit">Innovative Firms (2050)</div><div class="num" id="k_frm">&mdash;</div><div class="sub" id="k_frm_d">vs. 15,006 SQ</div></div>
-      <div class="kpi"><div class="tit">Active STI Talent (2050)</div><div class="num" id="k_tal">&mdash;</div><div class="sub" id="k_tal_d">vs. 14,711 SQ</div></div>
+      <div class="kpi"><div class="tit">Industrial Solutions (2050)</div><div class="num" id="k_sol">&mdash;</div><div class="sub" id="k_sol_d">vs. Status Quo</div></div>
+      <div class="kpi"><div class="tit">Innovative Firms (2050)</div><div class="num" id="k_frm">&mdash;</div><div class="sub" id="k_frm_d">vs. Status Quo</div></div>
+      <div class="kpi"><div class="tit">Active STI Talent (2050)</div><div class="num" id="k_tal">&mdash;</div><div class="sub" id="k_tal_d">vs. Status Quo</div></div>
       <div class="kpi"><div class="tit">Budget Exec. Ratio (2050)</div><div class="num" id="k_rat">&mdash;</div><div class="sub" id="k_bud">Budget: &mdash; M USD</div></div>
     </div>
 
     <div class="charts">
-      <div class="chart-box"><h3>(a) Active Industrial Solutions (Projects)</h3><canvas id="c_sol"></canvas></div>
-      <div class="chart-box"><h3>(b) Innovative Firms (Firms)</h3><canvas id="c_frm"></canvas></div>
-      <div class="chart-box"><h3>(c) Active STI Talent (People)</h3><canvas id="c_tal"></canvas></div>
-      <div class="chart-box"><h3>(d) R&amp;D Budget Liquidity (Million USD)</h3><canvas id="c_bud"></canvas></div>
+      <div class="chart-box">
+        <h3>(a) Active Industrial Solutions (Projects)</h3>
+        <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
+        <canvas id="c_sol"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>(b) Innovative Firms (Firms)</h3>
+        <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
+        <canvas id="c_frm"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>(c) Active STI Talent (People)</h3>
+        <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
+        <canvas id="c_tal"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>(d) R&amp;D Budget Liquidity (Million USD)</h3>
+        <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
+        <canvas id="c_bud"></canvas>
+      </div>
     </div>
   </main>
 </div>
@@ -138,6 +155,7 @@ const BASE = {
 };
 
 let lastRows = [];
+let sqBaseline = [];
 
 function derivs(t, y, ov) {
   const p = Object.assign({}, BASE);
@@ -218,16 +236,22 @@ function simulate(ov) {
 
 function drawChart(canvasId, sqRows, polRows, key, color) {
   const c = document.getElementById(canvasId);
+  if (!c) return;
   const ctx = c.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
+  if (!ctx) return;
   const rect = c.getBoundingClientRect();
-  c.width = rect.width * dpr; c.height = rect.height * dpr;
-  ctx.scale(dpr, dpr);
-  const W = rect.width, H = rect.height, padL = 48, padR = 14, padT = 14, padB = 26;
+  const W = rect.width > 20 ? rect.width : 460;
+  const H = rect.height > 20 ? rect.height : 225;
+  const dpr = window.devicePixelRatio || 1;
+  c.width = Math.round(W * dpr);
+  c.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const padL = 48, padR = 14, padT = 14, padB = 26;
   ctx.clearRect(0, 0, W, H);
 
   const allV = sqRows.map(r => r[key]).concat(polRows.map(r => r[key]));
-  const minV = 0, maxV = Math.max(...allV) * 1.12 || 1;
+  const minV = 0, maxV = Math.max(1, ...allV) * 1.12;
   const xPos = t => padL + ((t - 2015) / 35) * (W - padL - padR);
   const yPos = v => H - padB - ((v - minV) / (maxV - minV)) * (H - padT - padB);
 
@@ -238,7 +262,7 @@ function drawChart(canvasId, sqRows, polRows, key, color) {
     ctx.fillText(val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val.toFixed(0), 4, yy + 3);
   }
   [2015, 2026, 2035, 2050].forEach(yr => {
-    ctx.fillText(yr, xPos(yr) - 12, H - 8);
+    ctx.fillText(String(yr), xPos(yr) - 12, H - 8);
   });
 
   ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = '#94a3b8';
@@ -264,7 +288,7 @@ function setPreset(name) {
     eco: { rd: 0.29, eff: 0.75, inc: 0.85, lnk: 0.80, tau: 2.5, emi: 0.06, rep: 0.03 },
     pnd: { rd: 0.60, eff: 0.90, inc: 0.85, lnk: 0.80, tau: 2.5, emi: 0.06, rep: 0.07 }
   };
-  const p = presets[name];
+  const p = presets[name] || presets.sq;
   document.getElementById('s_rd').value = p.rd;
   document.getElementById('s_eff').value = p.eff;
   document.getElementById('s_inc').value = p.inc;
@@ -275,9 +299,8 @@ function setPreset(name) {
   runSim();
 }
 
-const sqBaseline = simulate({});
-
 function runSim() {
+  if (!sqBaseline.length) sqBaseline = simulate({});
   const rd = parseFloat(document.getElementById('s_rd').value);
   const eff = parseFloat(document.getElementById('s_eff').value);
   const inc = parseFloat(document.getElementById('s_inc').value);
@@ -305,7 +328,7 @@ function runSim() {
   });
   lastRows = rows;
   const u = rows[rows.length - 1], sq = sqBaseline[sqBaseline.length - 1];
-  const pct = (a, b) => (((a - b) / b) * 100).toFixed(1) + '%';
+  const pct = (a, b) => (((a - b) / Math.max(1e-6, b)) * 100).toFixed(1) + '%';
 
   document.getElementById('k_sol').textContent = Math.round(u.sol).toLocaleString();
   document.getElementById('k_sol_d').textContent = (u.sol >= sq.sol ? '+' : '') + pct(u.sol, sq.sol) + ' vs SQ';
@@ -332,6 +355,8 @@ function downloadCSV() {
   a.click();
 }
 
+window.addEventListener('DOMContentLoaded', runSim);
+window.addEventListener('load', runSim);
 window.addEventListener('resize', runSim);
 runSim();
 </script>
