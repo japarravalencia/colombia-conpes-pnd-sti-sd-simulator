@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this model or simulator, please cite it as below."
+title: "Colombia CONPES & PND 2026-2030 System Dynamics Model and Simulator (v2.2)"
+authors:
+  - family-names: "Parra Valencia"
+    given-names: "Jorge Andrick"
+    affiliation: "Universidad Autonoma de Bucaramanga (UNAB)"
+version: "2.2.0"
+date-released: "2026-11-26"
