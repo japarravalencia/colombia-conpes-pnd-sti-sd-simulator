@@ -39,7 +39,7 @@
     .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
     .chart-box h3 { margin: 0 0 8px; font-size: 0.88rem; color: var(--navy); }
     .legend-mini { font-size: 0.72rem; color: var(--slate); margin-bottom: 6px; display: flex; gap: 14px; flex-wrap: wrap; }
-    canvas { width: 100%; height: 225px; display: block; }
+    canvas { width: 100%; height: 225px; display: block; border-radius: 6px; }
     footer { text-align: center; padding: 18px; font-size: 0.78rem; color: var(--slate); }
   </style>
 </head>
@@ -107,22 +107,22 @@
       <div class="chart-box">
         <h3>(a) Active Industrial Solutions (Projects)</h3>
         <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
-        <canvas id="c_sol" width="520" height="225"></canvas>
+        <canvas id="c_sol" width="560" height="225"></canvas>
       </div>
       <div class="chart-box">
         <h3>(b) Innovative Firms (Firms)</h3>
         <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
-        <canvas id="c_frm" width="520" height="225"></canvas>
+        <canvas id="c_frm" width="560" height="225"></canvas>
       </div>
       <div class="chart-box">
         <h3>(c) Active STI Talent (People)</h3>
         <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
-        <canvas id="c_tal" width="520" height="225"></canvas>
+        <canvas id="c_tal" width="560" height="225"></canvas>
       </div>
       <div class="chart-box">
         <h3>(d) R&amp;D Budget Liquidity (Million USD)</h3>
         <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
-        <canvas id="c_bud" width="520" height="225"></canvas>
+        <canvas id="c_bud" width="560" height="225"></canvas>
       </div>
     </div>
   </main>
@@ -154,8 +154,8 @@ const BASE = {
   attractiveness_innovation_weight: 1.0, incose_weight: 0.70, linkage_weight: 0.30
 };
 
-let lastRows = [];
-let sqBaseline = [];
+var lastRows = [];
+var sqBaseline = [];
 
 function derivs(t, y, ov) {
   const p = Object.assign({}, BASE);
@@ -208,7 +208,7 @@ function derivs(t, y, ov) {
       n_rd - p_cp, p_cp - s_tr - t_sg, s_tr - s_ob,
       gdp * p.gdp_rd_allocation_target + p.external_rd_funding_base - f_rp - f_tp, d_gdp
     ],
-    ex_rat
+    ex_rat: ex_rat
   };
 }
 
@@ -239,43 +239,59 @@ function drawChart(canvasId, sqRows, polRows, key, color) {
   if (!c) return;
   const ctx = c.getContext('2d');
   if (!ctx) return;
-  const rect = c.getBoundingClientRect();
-  const W = rect.width > 40 ? rect.width : (c.width || 520);
-  const H = rect.height > 40 ? rect.height : (c.height || 225);
+  const W = c.clientWidth > 50 ? c.clientWidth : (c.width || 560);
+  const H = c.clientHeight > 50 ? c.clientHeight : (c.height || 225);
   c.width = Math.round(W);
   c.height = Math.round(H);
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-  const padL = 52, padR = 16, padT = 16, padB = 28;
+  const padL = 54, padR = 16, padT = 16, padB = 28;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
   const allV = sqRows.map(r => r[key]).concat(polRows.map(r => r[key])).filter(v => isFinite(v));
-  const maxV = Math.max(1, ...allV) * 1.12;
+  const rawMax = Math.max(1, ...allV);
+  const maxV = rawMax * 1.12;
   const minV = 0;
   const xPos = t => padL + ((t - 2015) / 35) * (W - padL - padR);
   const yPos = v => H - padB - ((v - minV) / (maxV - minV)) * (H - padT - padB);
 
-  ctx.strokeStyle = '#e5ecf4'; ctx.lineWidth = 1; ctx.font = '11px sans-serif'; ctx.fillStyle = '#526071';
+  ctx.strokeStyle = '#e5ecf4';
+  ctx.lineWidth = 1;
+  ctx.font = '11px sans-serif';
+  ctx.fillStyle = '#526071';
   for (let i = 0; i <= 4; i++) {
-    const val = (maxV / 4) * i, yy = yPos(val);
-    ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(W - padR, yy); ctx.stroke();
-    ctx.fillText(val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val.toFixed(1), 6, yy + 4);
+    const val = (maxV / 4) * i;
+    const yy = yPos(val);
+    ctx.beginPath();
+    ctx.moveTo(padL, yy);
+    ctx.lineTo(W - padR, yy);
+    ctx.stroke();
+    ctx.fillText(val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val.toFixed(2), 6, yy + 4);
   }
   [2015, 2026, 2035, 2050].forEach(yr => {
     ctx.fillText(String(yr), xPos(yr) - 14, H - 8);
   });
 
-  ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = '#94a3b8';
-  ctx.beginPath(); ctx.moveTo(xPos(2026.75), padT); ctx.lineTo(xPos(2026.75), H - padB); ctx.stroke();
+  ctx.save();
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = '#94a3b8';
+  ctx.beginPath();
+  ctx.moveTo(xPos(2026.75), padT);
+  ctx.lineTo(xPos(2026.75), H - padB);
+  ctx.stroke();
   ctx.restore();
 
-  ctx.save(); ctx.setLineDash([6, 4]); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
+  ctx.save();
+  ctx.setLineDash([6, 4]);
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 2;
   ctx.beginPath();
   sqRows.forEach((r, idx) => idx === 0 ? ctx.moveTo(xPos(r.Time), yPos(r[key])) : ctx.lineTo(xPos(r.Time), yPos(r[key])));
-  ctx.stroke(); ctx.restore();
+  ctx.stroke();
+  ctx.restore();
 
-  ctx.strokeStyle = color; ctx.lineWidth = 2.6;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.6;
   ctx.beginPath();
   polRows.forEach((r, idx) => idx === 0 ? ctx.moveTo(xPos(r.Time), yPos(r[key])) : ctx.lineTo(xPos(r.Time), yPos(r[key])));
   ctx.stroke();
@@ -301,49 +317,54 @@ function setPreset(name) {
 }
 
 function runSim() {
-  if (!sqBaseline.length) sqBaseline = simulate({});
-  const rd = parseFloat(document.getElementById('s_rd').value);
-  const eff = parseFloat(document.getElementById('s_eff').value);
-  const inc = parseFloat(document.getElementById('s_inc').value);
-  const lnk = parseFloat(document.getElementById('s_lnk').value);
-  const tau = parseFloat(document.getElementById('s_tau').value);
-  const emi = parseFloat(document.getElementById('s_emi').value);
-  const rep = parseFloat(document.getElementById('s_rep').value);
+  try {
+    if (!sqBaseline.length) sqBaseline = simulate({});
+    const rd = parseFloat(document.getElementById('s_rd').value);
+    const eff = parseFloat(document.getElementById('s_eff').value);
+    const inc = parseFloat(document.getElementById('s_inc').value);
+    const lnk = parseFloat(document.getElementById('s_lnk').value);
+    const tau = parseFloat(document.getElementById('s_tau').value);
+    const emi = parseFloat(document.getElementById('s_emi').value);
+    const rep = parseFloat(document.getElementById('s_rep').value);
 
-  document.getElementById('v_rd').textContent = rd.toFixed(2) + '%';
-  document.getElementById('v_eff').textContent = eff.toFixed(2);
-  document.getElementById('v_inc').textContent = inc.toFixed(2);
-  document.getElementById('v_lnk').textContent = lnk.toFixed(2);
-  document.getElementById('v_tau').textContent = tau.toFixed(1) + ' yr';
-  document.getElementById('v_emi').textContent = emi.toFixed(2);
-  document.getElementById('v_rep').textContent = rep.toFixed(3);
+    document.getElementById('v_rd').textContent = rd.toFixed(2) + '%';
+    document.getElementById('v_eff').textContent = eff.toFixed(2);
+    document.getElementById('v_inc').textContent = inc.toFixed(2);
+    document.getElementById('v_lnk').textContent = lnk.toFixed(2);
+    document.getElementById('v_tau').textContent = tau.toFixed(1) + ' yr';
+    document.getElementById('v_emi').textContent = emi.toFixed(2);
+    document.getElementById('v_rep').textContent = rep.toFixed(3);
 
-  const rows = simulate({
-    gdp_rd_allocation_target: rd / 100.0,
-    budget_execution_efficiency: eff,
-    incose_rigor_index: inc,
-    gov_uni_ind_linkage: lnk,
-    delay_time_rd_transfer: tau,
-    excess_emigration_rate: emi,
-    base_repatriation_rate: rep
-  });
-  lastRows = rows;
-  const u = rows[rows.length - 1], sq = sqBaseline[sqBaseline.length - 1];
-  const pct = (a, b) => (((a - b) / Math.max(1e-6, b)) * 100).toFixed(1) + '%';
+    const rows = simulate({
+      gdp_rd_allocation_target: rd / 100.0,
+      budget_execution_efficiency: eff,
+      incose_rigor_index: inc,
+      gov_uni_ind_linkage: lnk,
+      delay_time_rd_transfer: tau,
+      excess_emigration_rate: emi,
+      base_repatriation_rate: rep
+    });
+    lastRows = rows;
+    const u = rows[rows.length - 1], sq = sqBaseline[sqBaseline.length - 1];
+    const pct = (a, b) => (((a - b) / Math.max(1e-6, b)) * 100).toFixed(1) + '%';
 
-  document.getElementById('k_sol').textContent = Math.round(u.sol).toLocaleString();
-  document.getElementById('k_sol_d').textContent = (u.sol >= sq.sol ? '+' : '') + pct(u.sol, sq.sol) + ' vs SQ';
-  document.getElementById('k_frm').textContent = Math.round(u.firms).toLocaleString();
-  document.getElementById('k_frm_d').textContent = (u.firms >= sq.firms ? '+' : '') + pct(u.firms, sq.firms) + ' vs SQ';
-  document.getElementById('k_tal').textContent = Math.round(u.tal).toLocaleString();
-  document.getElementById('k_tal_d').textContent = (u.tal >= sq.tal ? '+' : '') + pct(u.tal, sq.tal) + ' vs SQ';
-  document.getElementById('k_rat').textContent = u.rat.toFixed(2);
-  document.getElementById('k_bud').textContent = 'Budget: $' + Math.round(u.bud).toLocaleString() + 'M';
+    document.getElementById('k_sol').textContent = Math.round(u.sol).toLocaleString();
+    document.getElementById('k_sol_d').textContent = (u.sol >= sq.sol ? '+' : '') + pct(u.sol, sq.sol) + ' vs SQ';
+    document.getElementById('k_frm').textContent = Math.round(u.firms).toLocaleString();
+    document.getElementById('k_frm_d').textContent = (u.firms >= sq.firms ? '+' : '') + pct(u.firms, sq.firms) + ' vs SQ';
+    document.getElementById('k_tal').textContent = Math.round(u.tal).toLocaleString();
+    document.getElementById('k_tal_d').textContent = (u.tal >= sq.tal ? '+' : '') + pct(u.tal, sq.tal) + ' vs SQ';
+    document.getElementById('k_rat').textContent = u.rat.toFixed(2);
+    document.getElementById('k_bud').textContent = 'Budget: $' + Math.round(u.bud).toLocaleString() + 'M';
 
-  drawChart('c_sol', sqBaseline, rows, 'sol', '#008080');
-  drawChart('c_frm', sqBaseline, rows, 'firms', '#207e44');
-  drawChart('c_tal', sqBaseline, rows, 'tal', '#0f2648');
-  drawChart('c_bud', sqBaseline, rows, 'bud', '#c47c10');
+    drawChart('c_sol', sqBaseline, rows, 'sol', '#008080');
+    drawChart('c_frm', sqBaseline, rows, 'firms', '#207e44');
+    drawChart('c_tal', sqBaseline, rows, 'tal', '#0f2648');
+    drawChart('c_bud', sqBaseline, rows, 'bud', '#c47c10');
+  } catch (err) {
+    document.getElementById('k_sol').textContent = 'Err';
+    document.getElementById('k_sol_d').textContent = String(err);
+  }
 }
 
 function downloadCSV() {
@@ -359,7 +380,7 @@ function downloadCSV() {
 window.addEventListener('DOMContentLoaded', runSim);
 window.addEventListener('load', runSim);
 window.addEventListener('resize', runSim);
-runSim();
+setTimeout(runSim, 50);
 </script>
 </body>
 </html>
