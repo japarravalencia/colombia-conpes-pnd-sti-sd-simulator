@@ -1,0 +1,2610 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
+	<header>
+		<smile version="1.0" namespace="std, isee" uses_submodels=""/>
+		<name>New CTI Col 2026_v22_CALIBRADO</name>
+		<uuid>ab42eb75-b9dd-4568-956c-d627f110764d</uuid>
+		<vendor>isee systems, inc.</vendor>
+		<product version="4.3" isee:build_number="3952" isee:saved_by_v1="true" lang="en">Stella Architect</product>
+	</header>
+	<ai_information>
+		<status verified="true" mixed="false" trusted="false" tampered="true" uses="true" analyzed="true" log_truncated="true" timestamp="1795711520" algorithm="ed25519" keyurl="https://iseesystems.com/keys/stella01.txt" want_var_info="true" want_var_status="true" want_log="true" sampling="1" signature="yujS9FSlyECqEAbqDorA6Ay4snmScbIz6eYVhfpo7Hapk7ED/2Qv5rKQPKS7CnReeTrQ8J7pm4jD9Bh+fLxdCw=="/>
+		<agentic_log>
+			<message type="user_text" content="Build a modular, dimensionally consistent System Dynamics model in Stella Architect for Colombia's Science, Technology, and Innovation (STI) policy and National Development Plan (`2026_conpes_ctei_colombia`).
+### 1. Simulation Settings
+- Start Time: 2015
+- Stop Time: 2050
+- DT: 0.25
+- Time Units: Years
+- Integration Method: RK4
+### 2. Modular Sectors (4 Strict Conservation Chains + Macro/Calibration)
+Organize the model into 5 clean sectors:
+1. `Sector_1_Talent_Conservation` (Units: `People`)
+2. `Sector_2_Firms_Adoption_Chain` (Units: `Firms`)
+3. `Sector_3_RD_Projects_and_Solutions` (Units: `Projects`)
+4. `Sector_4_Fiscal_Liquidity_and_Rationing` (Units: `Million_USD`)
+5. `Sector_5_Macro_Policy_and_Calibration`
+### 3. Exact 10 Stocks (All Non-Negative)
+**Sector 1 — Talent Conservation Chain (`People`):**
+- `talent_in_training` (Init = `12000`, Units = `People`, Non-Negative)
+- Inflow: `new_talent_formation`
+- Outflow: `talent_graduating`
+- `active_sti_talent` (Init = `4500`, Units = `People`, Non-Negative)
+- Inflows: `talent_graduating`, `talent_repatriation`
+- Outflows: `talent_emigration`, `talent_retirement`
+- `diaspora_talent` (Init = `2500`, Units = `People`, Non-Negative)
+- Inflow: `talent_emigration`
+- Outflow: `talent_repatriation`
+**Sector 2 — Firms Adoption Chain (`Firms`):**
+- `traditional_firms` (Init = `90000`, Units = `Firms`, Non-Negative)
+- Inflow: `new_firm_creation`
+- Outflows: `firm_adoption_rate`, `traditional_firm_exit`
+- `adopting_firms` (Init = `8000`, Units = `Firms`, Non-Negative)
+- Inflows: `firm_adoption_rate`, `firm_regression_rate`
+- Outflows: `firm_conversion_rate`, `adopting_firm_exit`
+- `innovative_firms` (Init = `2000`, Units = `Firms`, Non-Negative)
+- Inflow: `firm_conversion_rate`
+- Outflows: `firm_regression_rate`, `innovative_firm_exit`
+**Sector 3 — R&amp;D Projects &amp; Industrial Solutions Chain (`Projects`):**
+- `rd_projects_pipeline` (Init = `300`, Units = `Projects`, Non-Negative)
+- Inflow: `new_rd_project_initiation`
+- Outflow: `project_completion_rate`
+- `transferred_solutions` (Init = `120`, Units = `Projects`, Non-Negative)
+- Inflow: `project_completion_rate`
+- Outflows: `solution_transfer_rate`, `transfer_stagnation_rate`
+- `active_industrial_solutions` (Init = `250`, Units = `Projects`, Non-Negative)
+- Inflow: `solution_transfer_rate`
+- Outflow: `solution_obsolescence_rate`
+**Sector 4 — Fiscal Liquidity &amp; Endogenous Rationing (`Million_USD`):**
+- `rd_budget_stock` (Init = `500`, Units = `Million_USD`, Non-Negative)
+- Inflows: `gdp_contribution_to_rd`, `external_rd_funding`
+- Outflows: `rd_project_funding_rate`, `talent_program_funding_rate`
+### 4. Exact Flow and Auxiliary Equations (With Units)
+**Conservation Totals &amp; Endogenous Macro Feedback:**
+- `total_sti_people = talent_in_training + active_sti_talent + diaspora_talent` {Units: `People`}
+- `total_firms = traditional_firms + adopting_firms + innovative_firms` {Units: `Firms`}
+- `total_projects = rd_projects_pipeline + transferred_solutions + active_industrial_solutions` {Units: `Projects`}
+- `innovative_firm_share = innovative_firms / MAX(1, total_firms)` {Units: `dmnl`}
+- `gdp_growth_rate = baseline_gdp_growth_rate + innovation_gdp_elasticity * innovative_firm_share` {Units: `1/Year`}
+- `gdp = gdp_initial * EXP(gdp_growth_rate * (TIME - 2015))` {Units: `Million_USD/Year`}
+- `sti_attractiveness_factor = 0.50 + 0.50 * (active_industrial_solutions / ref_solutions_half_sat) / (1 + active_industrial_solutions / ref_solutions_half_sat) + 2.0 * innovative_firm_share` {Units: `dmnl`}
+**Fiscal Demand &amp; Endogenous Liquidity Rationing:**
+- `desired_project_starts = active_sti_talent * project_proposal_propensity` {Units: `Projects/Year`}
+- `desired_talent_intake = base_talent_intake * sti_attractiveness_factor` {Units: `People/Year`}
+- `rd_project_funding_demand = desired_project_starts * avg_cost_per_project` {Units: `Million_USD/Year`}
+- `talent_program_funding_demand = desired_talent_intake * cost_per_talent_trained` {Units: `Million_USD/Year`}
+- `total_funding_demand = rd_project_funding_demand + talent_program_funding_demand` {Units: `Million_USD/Year`}
+- `max_affordable_spending = rd_budget_stock / budget_min_liquidity_time` {Units: `Million_USD/Year`}
+- `budget_execution_ratio = MIN(1, (max_affordable_spending * budget_execution_efficiency) / MAX(0.001, total_funding_demand))` {Units: `dmnl`}
+- `gdp_contribution_to_rd = gdp * gdp_rd_allocation_target` {Units: `Million_USD/Year`}
+- `external_rd_funding = external_rd_funding_base` {Units: `Million_USD/Year`}
+- `rd_project_funding_rate = rd_project_funding_demand * budget_execution_ratio` {Units: `Million_USD/Year`}
+- `talent_program_funding_rate = talent_program_funding_demand * budget_execution_ratio` {Units: `Million_USD/Year`}
+**Talent Flows:**
+- `new_talent_formation = talent_program_funding_rate / cost_per_talent_trained` {Units: `People/Year`}
+- `talent_graduating = talent_in_training / avg_training_duration` {Units: `People/Year`}
+- `domestic_talent_demand = innovative_firms * talent_per_innovative_firm + adopting_firms * talent_per_adopting_firm` {Units: `People`}
+- `unabsorbed_talent = MAX(0, active_sti_talent - domestic_talent_demand)` {Units: `People`}
+- `talent_emigration = active_sti_talent * base_emigration_rate + unabsorbed_talent * excess_emigration_rate` {Units: `People/Year`}
+- `talent_repatriation = diaspora_talent * base_repatriation_rate * sti_attractiveness_factor` {Units: `People/Year`}
+- `talent_retirement = active_sti_talent * retirement_rate` {Units: `People/Year`}
+**Firms Flows:**
+- `new_firm_creation = total_firms * firm_creation_rate_base` {Units: `Firms/Year`}
+- `firm_adoption_rate = traditional_firms * base_adoption_rate * (active_industrial_solutions / (active_industrial_solutions + ref_solutions_half_sat)) * gov_uni_ind_linkage` {Units: `Firms/Year`}
+- `firm_conversion_rate = adopting_firms * incose_rigor_index / avg_adoption_duration` {Units: `Firms/Year`}
+- `firm_regression_rate = innovative_firms * base_regression_rate * (1 - incose_rigor_index)` {Units: `Firms/Year`}
+- `traditional_firm_exit = traditional_firms * firm_exit_rate_base` {Units: `Firms/Year`}
+- `adopting_firm_exit = adopting_firms * firm_exit_rate_base` {Units: `Firms/Year`}
+- `innovative_firm_exit = innovative_firms * (firm_exit_rate_base * 0.5)` {Units: `Firms/Year`}
+**R&amp;D Projects &amp; Transfer Flows:**
+- `new_rd_project_initiation = rd_project_funding_rate / avg_cost_per_project` {Units: `Projects/Year`}
+- `project_completion_rate = rd_projects_pipeline / avg_project_duration` {Units: `Projects/Year`}
+- `transfer_efficacy = 0.70 * incose_rigor_index + 0.30 * gov_uni_ind_linkage` {Units: `dmnl`}
+- `solution_transfer_rate = transferred_solutions * transfer_efficacy / delay_time_rd_transfer` {Units: `Projects/Year`}
+- `transfer_stagnation_rate = transferred_solutions * stagnation_rate_base` {Units: `Projects/Year`}
+- `solution_obsolescence_rate = active_industrial_solutions / solution_lifetime` {Units: `Projects/Year`}
+### 5. Baseline Parameters (Constants)
+- `gdp_initial = 300000` {Units: `Million_USD/Year`}
+- `baseline_gdp_growth_rate = 0.028` {Units: `1/Year`}
+- `innovation_gdp_elasticity = 0.12` {Units: `1/Year`}
+- `gdp_rd_allocation_target = 0.0029` {Units: `dmnl`}
+- `external_rd_funding_base = 80` {Units: `Million_USD/Year`}
+- `budget_min_liquidity_time = 0.5` {Units: `Year`}
+- `budget_execution_efficiency = 0.75` {Units: `dmnl`}
+- `base_talent_intake = 3000` {Units: `People/Year`}
+- `cost_per_talent_trained = 0.12` {Units: `Million_USD/People`}
+- `avg_training_duration = 4.0` {Units: `Year`}
+- `talent_per_innovative_firm = 1.5` {Units: `People/Firms`}
+- `talent_per_adopting_firm = 0.20` {Units: `People/Firms`}
+- `base_emigration_rate = 0.04` {Units: `1/Year`}
+- `excess_emigration_rate = 0.15` {Units: `1/Year`}
+- `base_repatriation_rate = 0.03` {Units: `1/Year`}
+- `retirement_rate = 0.03` {Units: `1/Year`}
+- `firm_creation_rate_base = 0.03` {Units: `1/Year`}
+- `firm_exit_rate_base = 0.025` {Units: `1/Year`}
+- `base_adoption_rate = 0.06` {Units: `1/Year`}
+- `avg_adoption_duration = 4.0` {Units: `Year`}
+- `base_regression_rate = 0.05` {Units: `1/Year`}
+- `project_proposal_propensity = 0.06` {Units: `Projects/(People*Year)`}
+- `avg_cost_per_project = 2.0` {Units: `Million_USD/Projects`}
+- `avg_project_duration = 3.0` {Units: `Year`}
+- `ref_solutions_half_sat = 250` {Units: `Projects`}
+- `incose_rigor_index = 0.60` {Units: `dmnl`}
+- `gov_uni_ind_linkage = 0.50` {Units: `dmnl`}
+- `delay_time_rd_transfer = 4.0` {Units: `Year`}
+- `stagnation_rate_base = 0.10` {Units: `1/Year`}
+- `solution_lifetime = 8.0` {Units: `Year`}
+### 6. Calibration Reference Variables (For Importing World Bank CSV)
+Create graphical/imported reference converters matching the exact headers of `03_calibracion_stella_horizontal_2026_conpes_ctei_colombia.csv` (`Time` from 2005 to 2025):
+- `ref_rd_gdp_pct` {Units: `dmnl`}
+- `ref_researchers_per_million` {Units: `People`}
+- `ref_resident_patents` {Units: `Projects`}
+- `ref_hightech_exports_pct` {Units: `dmnl`}
+- `ref_real_gdp_growth_pct` {Units: `1/Year`}
+- `ref_tertiary_enrollment_pct` {Units: `dmnl`}
+### 7. Verification Requirements
+Run Stella's `Check Units` to confirm zero dimensional warnings across all 10 stocks, 19 flows, and auxiliaries, and ensure strict conservation of `total_sti_people`, `total_firms`, `total_projects`, and `rd_budget_stock`." is_thinking="false"/>
+			<message type="agent_text" content="&lt;p&gt;Status: stocks, parameters and modules are in. I&amp;#39;m adding cross-module ghost variables now, then the flow and auxiliary equations and units.&lt;/p&gt;
+" is_thinking="false" agent_name="Merlin"/>
+			<message type="agent_text" content="&lt;p&gt;Expected errors while the removed items are missing. Re-adding the real stocks and variables first, then the ghosts.&lt;/p&gt;
+" is_thinking="false" agent_name="Merlin"/>
+			<message type="agent_text" content="&lt;p&gt;Status: &lt;code&gt;traditional_firms&lt;/code&gt; still reads back without its flows. I&amp;#39;m removing and re-adding it, then I&amp;#39;ll run the model.&lt;/p&gt;
+" is_thinking="false" agent_name="Merlin"/>
+			<message type="agent_text" content="&lt;p&gt;Structure now matches the spec. Running the model.&lt;/p&gt;
+" is_thinking="false" agent_name="Merlin"/>
+			<message type="agent_text" content="&lt;p&gt;The model is built and runs from 2015 to 2050, but it doesn&amp;#39;t yet meet your zero-warnings check. Four things are open: a final unit check, the placeholder calibration converters, the model&amp;#39;s behavior, and the conservation test.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What&amp;#39;s in the model&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Settings are start 2015, stop 2050, DT 0.25, years, RK4.&lt;/li&gt;
+&lt;li&gt;The five modules have the names you gave.&lt;/li&gt;
+&lt;li&gt;There are 10 non-negative stocks with your initial values and units.&lt;/li&gt;
+&lt;li&gt;All flow and auxiliary equations from your spec are in, with units.&lt;/li&gt;
+&lt;li&gt;Cross-module references use ghost variables.&lt;/li&gt;
+&lt;li&gt;The model reports no unit warnings or errors at the last edit. I didn&amp;#39;t re-check after the final &lt;code&gt;traditional_firms&lt;/code&gt; rebuild.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Deviations from your spec&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;I replaced the literals inside equations with named dmnl parameters of the same value: &lt;code&gt;attractiveness_floor&lt;/code&gt; (0.50), &lt;code&gt;attractiveness_saturation_weight&lt;/code&gt; (0.50), &lt;code&gt;attractiveness_innovation_weight&lt;/code&gt; (2.0), &lt;code&gt;incose_weight&lt;/code&gt; (0.70), &lt;code&gt;linkage_weight&lt;/code&gt; (0.30), &lt;code&gt;innovative_exit_multiplier&lt;/code&gt; (0.5), &lt;code&gt;min_demand_floor&lt;/code&gt; (0.001) and &lt;code&gt;model_start_year&lt;/code&gt; (2015). The equations are otherwise unchanged.&lt;/li&gt;
+&lt;li&gt;The six &lt;code&gt;ref_*&lt;/code&gt; converters are placeholders. They are graphical functions on Time 2005–2025 with all values zero, because I can&amp;#39;t load your CSV from here. Replace them with the CSV data, or I can load it with the calibration-data tool if you want.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Behavior check (Run 1)&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;All stocks stay non-negative.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;rd_budget_stock&lt;/code&gt; stays between 500 and about 9,500, and &lt;code&gt;budget_execution_ratio&lt;/code&gt; ranges from 0.53 to 1.&lt;/li&gt;
+&lt;li&gt;GDP grows from 300,000 to about 3.0 million by 2050. That is roughly a tenfold increase over 35 years, which looks too high.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;active_sti_talent&lt;/code&gt; grows from 4,500 to about 51,000, and &lt;code&gt;active_industrial_solutions&lt;/code&gt; from 250 to about 6,300.&lt;/li&gt;
+&lt;li&gt;Growth this strong comes from the reinforcing structure you specified, in particular the &lt;code&gt;sti_attractiveness_factor&lt;/code&gt; and &lt;code&gt;base_talent_intake&lt;/code&gt; terms. I haven&amp;#39;t run a feedback analysis, so I can&amp;#39;t say which loops drive it. I can run one if you want.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Conservation&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;total_sti_people&lt;/code&gt;, &lt;code&gt;total_firms&lt;/code&gt; and &lt;code&gt;total_projects&lt;/code&gt; are not constant. They change by design through formation, retirement, creation, exit, initiation and obsolescence.&lt;/li&gt;
+&lt;li&gt;The same holds for &lt;code&gt;rd_budget_stock&lt;/code&gt;. I did not run a flow-by-flow reconciliation to confirm the changes match the net flows. I can do that next.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Calibrating against the real data should come first, to see whether the growth is realistic.&lt;/p&gt;
+" is_thinking="false" agent_name="Merlin"/>
+			<message type="agent_complete" content="Task completed successfully" is_thinking="false" agent_name="Merlin"/>
+		</agentic_log>
+		<log>{This model was created or analyzed by a newer version of the software using an interactive agent:uvkq+LmlIzB7Ock1QPCKRfZf/54WjYytrzLgH9d2rr5WM6n5Jg0q4XY808fcoaoqC5j69vtXg6g07xHKGxz1Bg==}
+</log>
+	</ai_information>
+	<sim_specs isee:sim_duration="1.5" isee:run_prefix="Run" isee:simulation_delay="0.0428571" isee:restore_on_start="false" method="RK4" time_units="Years" isee:instantaneous_flows="false" isee:ignore_module_errors="false" isee:strict_units="true" isee:loop_scores="true" isee:loop_exhaustive_allowed="1000">
+		<start>2015</start>
+		<stop>2050</stop>
+		<dt>0.25</dt>
+	</sim_specs>
+	<isee:prefs saved_runs="10" keep="true" show_module_prefix="true" live_update_on_drag="true" show_restore_buttons="false" layer="model" isee:design="Deluxe Prev-Next Blue Green Pastel" isee:design_custom="false" interface_scale_ui="true" interface_max_page_width="10000" interface_max_page_height="10000" interface_min_page_width="0" interface_min_page_height="0" rifp="true">
+		<isee:tag_styles>
+			<isee:tag_style tag="Interface"/>
+			<isee:tag_style tag="Output"/>
+			<isee:tag_style tag="Parameter"/>
+			<isee:tag_style tag="Policy"/>
+		</isee:tag_styles>
+	</isee:prefs>
+	<isee:multiplayer_settings include_chat="true" allow_observers="false" advance_time_increment="1" max_advance_time_in_ms="0" model_stops_when_players_drop="false" observer_start_page="home_page" enabled="false"/>
+	<isee:time_formats default_format="Builtin">
+		<isee:time_format name="Builtin" type="adaptive"/>
+	</isee:time_formats>
+	<isee:number_format_extenders/>
+	<default_format/>
+	<isee:sensi_specs_list active_index="0">
+		<isee:sensi_specs name="Sensitivity" method="sobol_sequence" runs="0"/>
+	</isee:sensi_specs_list>
+	<isee:optimizer_specs_list active_index="0">
+		<isee:optimizer_specs name="Optimization" method="Powell" use_additional_starts_file="false" additional_starts="0" report_interval="1" confidence_range="0"/>
+	</isee:optimizer_specs_list>
+	<isee:payoff_specs_list>
+		<isee:payoff_specs name="Payoff"/>
+	</isee:payoff_specs_list>
+	<model_units/>
+	<model>
+		<variables>
+			<module name="Sector 1 Talent Conservation" isee:label="" ai_state="C">
+				<connect to="Sector_3_RD_Projects_and_Solutions.active_sti_talent" from="Sector_1_Talent_Conservation.active_sti_talent"/>
+				<connect2 to="Sector_3_RD_Projects_and_Solutions.active_sti_talent" from="Sector_1_Talent_Conservation.active_sti_talent"/>
+				<connect to="Sector_4_Fiscal_Liquidity_and_Rationing.active_sti_talent" from="Sector_1_Talent_Conservation.active_sti_talent"/>
+				<connect2 to="Sector_4_Fiscal_Liquidity_and_Rationing.active_sti_talent" from="Sector_1_Talent_Conservation.active_sti_talent"/>
+				<connect to="Sector_4_Fiscal_Liquidity_and_Rationing.desired_talent_intake" from="Sector_1_Talent_Conservation.desired_talent_intake"/>
+				<connect2 to="Sector_4_Fiscal_Liquidity_and_Rationing.desired_talent_intake" from="Sector_1_Talent_Conservation.desired_talent_intake"/>
+				<connect to="Sector_1_Talent_Conservation.adopting_firms" from="Sector_2_Firms_Adoption_Chain.adopting_firms"/>
+				<connect2 to="Sector_1_Talent_Conservation.adopting_firms" from="Sector_2_Firms_Adoption_Chain.adopting_firms"/>
+				<connect to="Sector_1_Talent_Conservation.cost_per_talent_trained" from="Sector_4_Fiscal_Liquidity_and_Rationing.cost_per_talent_trained"/>
+				<connect2 to="Sector_1_Talent_Conservation.cost_per_talent_trained" from="Sector_4_Fiscal_Liquidity_and_Rationing.cost_per_talent_trained"/>
+				<connect to="Sector_1_Talent_Conservation.innovative_firms" from="Sector_2_Firms_Adoption_Chain.innovative_firms"/>
+				<connect2 to="Sector_1_Talent_Conservation.innovative_firms" from="Sector_2_Firms_Adoption_Chain.innovative_firms"/>
+				<connect to="Sector_1_Talent_Conservation.sti_attractiveness_factor" from="Sector_5_Macro_Policy_and_Calibration.sti_attractiveness_factor"/>
+				<connect2 to="Sector_1_Talent_Conservation.sti_attractiveness_factor" from="Sector_5_Macro_Policy_and_Calibration.sti_attractiveness_factor"/>
+				<connect to="Sector_1_Talent_Conservation.talent_program_funding_rate" from="Sector_4_Fiscal_Liquidity_and_Rationing.talent_program_funding_rate"/>
+				<connect2 to="Sector_1_Talent_Conservation.talent_program_funding_rate" from="Sector_4_Fiscal_Liquidity_and_Rationing.talent_program_funding_rate"/>
+			</module>
+			<module name="Sector 2 Firms Adoption Chain" isee:label="" ai_state="C">
+				<connect to="Sector_1_Talent_Conservation.adopting_firms" from="Sector_2_Firms_Adoption_Chain.adopting_firms"/>
+				<connect2 to="Sector_1_Talent_Conservation.adopting_firms" from="Sector_2_Firms_Adoption_Chain.adopting_firms"/>
+				<connect to="Sector_1_Talent_Conservation.innovative_firms" from="Sector_2_Firms_Adoption_Chain.innovative_firms"/>
+				<connect2 to="Sector_1_Talent_Conservation.innovative_firms" from="Sector_2_Firms_Adoption_Chain.innovative_firms"/>
+				<connect to="Sector_5_Macro_Policy_and_Calibration.innovative_firms" from="Sector_2_Firms_Adoption_Chain.innovative_firms"/>
+				<connect2 to="Sector_5_Macro_Policy_and_Calibration.innovative_firms" from="Sector_2_Firms_Adoption_Chain.innovative_firms"/>
+				<connect to="Sector_5_Macro_Policy_and_Calibration.total_firms" from="Sector_2_Firms_Adoption_Chain.total_firms"/>
+				<connect2 to="Sector_5_Macro_Policy_and_Calibration.total_firms" from="Sector_2_Firms_Adoption_Chain.total_firms"/>
+				<connect to="Sector_2_Firms_Adoption_Chain.active_industrial_solutions" from="Sector_3_RD_Projects_and_Solutions.active_industrial_solutions"/>
+				<connect2 to="Sector_2_Firms_Adoption_Chain.active_industrial_solutions" from="Sector_3_RD_Projects_and_Solutions.active_industrial_solutions"/>
+				<connect to="Sector_2_Firms_Adoption_Chain.gov_uni_ind_linkage" from="Sector_5_Macro_Policy_and_Calibration.gov_uni_ind_linkage"/>
+				<connect2 to="Sector_2_Firms_Adoption_Chain.gov_uni_ind_linkage" from="Sector_5_Macro_Policy_and_Calibration.gov_uni_ind_linkage"/>
+				<connect to="Sector_2_Firms_Adoption_Chain.incose_rigor_index" from="Sector_5_Macro_Policy_and_Calibration.incose_rigor_index"/>
+				<connect2 to="Sector_2_Firms_Adoption_Chain.incose_rigor_index" from="Sector_5_Macro_Policy_and_Calibration.incose_rigor_index"/>
+				<connect to="Sector_2_Firms_Adoption_Chain.ref_solutions_half_sat" from="Sector_3_RD_Projects_and_Solutions.ref_solutions_half_sat"/>
+				<connect2 to="Sector_2_Firms_Adoption_Chain.ref_solutions_half_sat" from="Sector_3_RD_Projects_and_Solutions.ref_solutions_half_sat"/>
+			</module>
+			<module name="Sector 3 RD Projects and Solutions" isee:label="" ai_state="C">
+				<connect to="Sector_2_Firms_Adoption_Chain.active_industrial_solutions" from="Sector_3_RD_Projects_and_Solutions.active_industrial_solutions"/>
+				<connect2 to="Sector_2_Firms_Adoption_Chain.active_industrial_solutions" from="Sector_3_RD_Projects_and_Solutions.active_industrial_solutions"/>
+				<connect to="Sector_5_Macro_Policy_and_Calibration.active_industrial_solutions" from="Sector_3_RD_Projects_and_Solutions.active_industrial_solutions"/>
+				<connect2 to="Sector_5_Macro_Policy_and_Calibration.active_industrial_solutions" from="Sector_3_RD_Projects_and_Solutions.active_industrial_solutions"/>
+				<connect to="Sector_4_Fiscal_Liquidity_and_Rationing.avg_cost_per_project" from="Sector_3_RD_Projects_and_Solutions.avg_cost_per_project"/>
+				<connect2 to="Sector_4_Fiscal_Liquidity_and_Rationing.avg_cost_per_project" from="Sector_3_RD_Projects_and_Solutions.avg_cost_per_project"/>
+				<connect to="Sector_4_Fiscal_Liquidity_and_Rationing.desired_project_starts" from="Sector_3_RD_Projects_and_Solutions.desired_project_starts"/>
+				<connect2 to="Sector_4_Fiscal_Liquidity_and_Rationing.desired_project_starts" from="Sector_3_RD_Projects_and_Solutions.desired_project_starts"/>
+				<connect to="Sector_2_Firms_Adoption_Chain.ref_solutions_half_sat" from="Sector_3_RD_Projects_and_Solutions.ref_solutions_half_sat"/>
+				<connect2 to="Sector_2_Firms_Adoption_Chain.ref_solutions_half_sat" from="Sector_3_RD_Projects_and_Solutions.ref_solutions_half_sat"/>
+				<connect to="Sector_5_Macro_Policy_and_Calibration.ref_solutions_half_sat" from="Sector_3_RD_Projects_and_Solutions.ref_solutions_half_sat"/>
+				<connect2 to="Sector_5_Macro_Policy_and_Calibration.ref_solutions_half_sat" from="Sector_3_RD_Projects_and_Solutions.ref_solutions_half_sat"/>
+				<connect to="Sector_3_RD_Projects_and_Solutions.active_sti_talent" from="Sector_1_Talent_Conservation.active_sti_talent"/>
+				<connect2 to="Sector_3_RD_Projects_and_Solutions.active_sti_talent" from="Sector_1_Talent_Conservation.active_sti_talent"/>
+				<connect to="Sector_3_RD_Projects_and_Solutions.gov_uni_ind_linkage" from="Sector_5_Macro_Policy_and_Calibration.gov_uni_ind_linkage"/>
+				<connect2 to="Sector_3_RD_Projects_and_Solutions.gov_uni_ind_linkage" from="Sector_5_Macro_Policy_and_Calibration.gov_uni_ind_linkage"/>
+				<connect to="Sector_3_RD_Projects_and_Solutions.incose_rigor_index" from="Sector_5_Macro_Policy_and_Calibration.incose_rigor_index"/>
+				<connect2 to="Sector_3_RD_Projects_and_Solutions.incose_rigor_index" from="Sector_5_Macro_Policy_and_Calibration.incose_rigor_index"/>
+				<connect to="Sector_3_RD_Projects_and_Solutions.rd_project_funding_rate" from="Sector_4_Fiscal_Liquidity_and_Rationing.rd_project_funding_rate"/>
+				<connect2 to="Sector_3_RD_Projects_and_Solutions.rd_project_funding_rate" from="Sector_4_Fiscal_Liquidity_and_Rationing.rd_project_funding_rate"/>
+			</module>
+			<module name="Sector 4 Fiscal Liquidity and Rationing" isee:label="" ai_state="C">
+				<connect to="Sector_1_Talent_Conservation.cost_per_talent_trained" from="Sector_4_Fiscal_Liquidity_and_Rationing.cost_per_talent_trained"/>
+				<connect2 to="Sector_1_Talent_Conservation.cost_per_talent_trained" from="Sector_4_Fiscal_Liquidity_and_Rationing.cost_per_talent_trained"/>
+				<connect to="Sector_3_RD_Projects_and_Solutions.rd_project_funding_rate" from="Sector_4_Fiscal_Liquidity_and_Rationing.rd_project_funding_rate"/>
+				<connect2 to="Sector_3_RD_Projects_and_Solutions.rd_project_funding_rate" from="Sector_4_Fiscal_Liquidity_and_Rationing.rd_project_funding_rate"/>
+				<connect to="Sector_1_Talent_Conservation.talent_program_funding_rate" from="Sector_4_Fiscal_Liquidity_and_Rationing.talent_program_funding_rate"/>
+				<connect2 to="Sector_1_Talent_Conservation.talent_program_funding_rate" from="Sector_4_Fiscal_Liquidity_and_Rationing.talent_program_funding_rate"/>
+				<connect to="Sector_4_Fiscal_Liquidity_and_Rationing.active_sti_talent" from="Sector_1_Talent_Conservation.active_sti_talent"/>
+				<connect2 to="Sector_4_Fiscal_Liquidity_and_Rationing.active_sti_talent" from="Sector_1_Talent_Conservation.active_sti_talent"/>
+				<connect to="Sector_4_Fiscal_Liquidity_and_Rationing.avg_cost_per_project" from="Sector_3_RD_Projects_and_Solutions.avg_cost_per_project"/>
+				<connect2 to="Sector_4_Fiscal_Liquidity_and_Rationing.avg_cost_per_project" from="Sector_3_RD_Projects_and_Solutions.avg_cost_per_project"/>
+				<connect to="Sector_4_Fiscal_Liquidity_and_Rationing.desired_project_starts" from="Sector_3_RD_Projects_and_Solutions.desired_project_starts"/>
+				<connect2 to="Sector_4_Fiscal_Liquidity_and_Rationing.desired_project_starts" from="Sector_3_RD_Projects_and_Solutions.desired_project_starts"/>
+				<connect to="Sector_4_Fiscal_Liquidity_and_Rationing.desired_talent_intake" from="Sector_1_Talent_Conservation.desired_talent_intake"/>
+				<connect2 to="Sector_4_Fiscal_Liquidity_and_Rationing.desired_talent_intake" from="Sector_1_Talent_Conservation.desired_talent_intake"/>
+				<connect to="Sector_4_Fiscal_Liquidity_and_Rationing.gdp" from="Sector_5_Macro_Policy_and_Calibration.gdp"/>
+				<connect2 to="Sector_4_Fiscal_Liquidity_and_Rationing.gdp" from="Sector_5_Macro_Policy_and_Calibration.gdp"/>
+			</module>
+			<module name="Sector 5 Macro Policy and Calibration" isee:label="" ai_state="C">
+				<connect to="Sector_4_Fiscal_Liquidity_and_Rationing.gdp" from="Sector_5_Macro_Policy_and_Calibration.gdp"/>
+				<connect2 to="Sector_4_Fiscal_Liquidity_and_Rationing.gdp" from="Sector_5_Macro_Policy_and_Calibration.gdp"/>
+				<connect to="Sector_2_Firms_Adoption_Chain.gov_uni_ind_linkage" from="Sector_5_Macro_Policy_and_Calibration.gov_uni_ind_linkage"/>
+				<connect2 to="Sector_2_Firms_Adoption_Chain.gov_uni_ind_linkage" from="Sector_5_Macro_Policy_and_Calibration.gov_uni_ind_linkage"/>
+				<connect to="Sector_3_RD_Projects_and_Solutions.gov_uni_ind_linkage" from="Sector_5_Macro_Policy_and_Calibration.gov_uni_ind_linkage"/>
+				<connect2 to="Sector_3_RD_Projects_and_Solutions.gov_uni_ind_linkage" from="Sector_5_Macro_Policy_and_Calibration.gov_uni_ind_linkage"/>
+				<connect to="Sector_2_Firms_Adoption_Chain.incose_rigor_index" from="Sector_5_Macro_Policy_and_Calibration.incose_rigor_index"/>
+				<connect2 to="Sector_2_Firms_Adoption_Chain.incose_rigor_index" from="Sector_5_Macro_Policy_and_Calibration.incose_rigor_index"/>
+				<connect to="Sector_3_RD_Projects_and_Solutions.incose_rigor_index" from="Sector_5_Macro_Policy_and_Calibration.incose_rigor_index"/>
+				<connect2 to="Sector_3_RD_Projects_and_Solutions.incose_rigor_index" from="Sector_5_Macro_Policy_and_Calibration.incose_rigor_index"/>
+				<connect to="Sector_1_Talent_Conservation.sti_attractiveness_factor" from="Sector_5_Macro_Policy_and_Calibration.sti_attractiveness_factor"/>
+				<connect2 to="Sector_1_Talent_Conservation.sti_attractiveness_factor" from="Sector_5_Macro_Policy_and_Calibration.sti_attractiveness_factor"/>
+				<connect to="Sector_5_Macro_Policy_and_Calibration.active_industrial_solutions" from="Sector_3_RD_Projects_and_Solutions.active_industrial_solutions"/>
+				<connect2 to="Sector_5_Macro_Policy_and_Calibration.active_industrial_solutions" from="Sector_3_RD_Projects_and_Solutions.active_industrial_solutions"/>
+				<connect to="Sector_5_Macro_Policy_and_Calibration.innovative_firms" from="Sector_2_Firms_Adoption_Chain.innovative_firms"/>
+				<connect2 to="Sector_5_Macro_Policy_and_Calibration.innovative_firms" from="Sector_2_Firms_Adoption_Chain.innovative_firms"/>
+				<connect to="Sector_5_Macro_Policy_and_Calibration.ref_solutions_half_sat" from="Sector_3_RD_Projects_and_Solutions.ref_solutions_half_sat"/>
+				<connect2 to="Sector_5_Macro_Policy_and_Calibration.ref_solutions_half_sat" from="Sector_3_RD_Projects_and_Solutions.ref_solutions_half_sat"/>
+				<connect to="Sector_5_Macro_Policy_and_Calibration.total_firms" from="Sector_2_Firms_Adoption_Chain.total_firms"/>
+				<connect2 to="Sector_5_Macro_Policy_and_Calibration.total_firms" from="Sector_2_Firms_Adoption_Chain.total_firms"/>
+			</module>
+		</variables>
+		<views>
+			<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+				<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+				<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+				<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+					<isee:series_styles>
+						<isee:series_style color="blue" thickness="1"/>
+						<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF7F00" thickness="1"/>
+						<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF007F" thickness="1"/>
+						<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#C8C8C8" thickness="1"/>
+					</isee:series_styles>
+				</graph>
+				<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				<button color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595"/>
+				<isee:annotation color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595" popup_corner_radius="0" popup_background_color="#FFFECF"/>
+				<slider color="#0075FF" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:stacked_container color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="0" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:dual_slider color="#66CC66" background="silver" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:sim_speed_slider color="black" background="white"/>
+				<isee:time_slider color="#E95F74" background="silver"/>
+				<isee:pie_input color="black" background="white" font_size="12pt" legend_position="bottom" isee:transparent="false"/>
+				<knob color="#66CC66" background="#E0E0E0" font_size="12pt" label_side="bottom" wrap_title="true"/>
+				<numeric_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<isee:dropdown_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<switch color="black" background="#E0E0E0" font_size="12pt" label_side="top" wrap_title="true" isee:appearance="switch" isee:on_color="green"/>
+				<options color="black" background="white" appearance="radio-buttons" arrangement="vertical"/>
+				<graphical_input color="black" background="#E0E0E0" font_size="12pt" isee:show_hover_tip="true"/>
+				<group_input color="black" background="#E0E0E0" font_size="12pt"/>
+				<lamp color="black" background="white" font_size="9pt"/>
+				<gauge color="black" background="white" font_size="9pt" needle_color="#F09F72" bar_color="#EEEEEE" bar_progress_color="black" appearance="radial" num_major_ticks="11" num_minor_ticks="1" show_numeric_value="true"/>
+				<isee:spatial_map color="black" background="white" font_size="12pt"/>
+				<isee:animation_object color="black" background="white" font_size="12pt"/>
+				<isee:navigation_widget color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="6" appearance="tabs" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:shape color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid" opacity="1" transparent_background="true" corner_radius="1"/>
+				<isee:selector color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
+				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+			</style>
+			<view isee:show_pages="false" background="white" page_width="768" page_height="588" isee:page_cols="2" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+					<stock color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="45" height="35"/>
+					</stock>
+					<flow color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</flow>
+					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="9pt" label_side="bottom"/>
+					<module color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="55" height="45"/>
+					</module>
+					<aux color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</aux>
+					<group color="red" background="white" font_color="red" font_size="9pt"/>
+					<connector color="#FF007F" background="white" font_color="#FF007F" font_size="9pt" isee:thickness="1"/>
+					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+					<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+					<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+						<isee:series_styles>
+							<isee:series_style color="blue" thickness="1"/>
+							<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF7F00" thickness="1"/>
+							<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF007F" thickness="1"/>
+							<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#C8C8C8" thickness="1"/>
+						</isee:series_styles>
+					</graph>
+					<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				</style>
+				<module x="258.625" y="297.5" name="Sector 1 Talent Conservation"/>
+				<module x="420.625" y="419.5" name="Sector 2 Firms Adoption Chain"/>
+				<module x="296.625" y="397.5" name="Sector 3 RD Projects and Solutions"/>
+				<module x="488.625" y="311.5" name="Sector 4 Fiscal Liquidity and Rationing"/>
+				<module x="379.625" y="249.5" name="Sector 5 Macro Policy and Calibration"/>
+				<connector uid="1" isee:thickness="2" angle="196.517" isee:autocreated="true">
+					<from>Sector_4_Fiscal_Liquidity_and_Rationing</from>
+					<to>Sector_1_Talent_Conservation</to>
+				</connector>
+				<connector uid="2" isee:thickness="2" angle="181.638" isee:autocreated="true">
+					<from>Sector_5_Macro_Policy_and_Calibration</from>
+					<to>Sector_1_Talent_Conservation</to>
+				</connector>
+				<connector uid="5" isee:thickness="2" angle="224.128" isee:autocreated="true">
+					<from>Sector_4_Fiscal_Liquidity_and_Rationing</from>
+					<to>Sector_3_RD_Projects_and_Solutions</to>
+				</connector>
+				<connector uid="8" isee:thickness="2" angle="350.368" isee:autocreated="true">
+					<from>Sector_5_Macro_Policy_and_Calibration</from>
+					<to>Sector_4_Fiscal_Liquidity_and_Rationing</to>
+				</connector>
+				<connector uid="9" isee:thickness="2" angle="44.1284" isee:autocreated="true">
+					<from>Sector_3_RD_Projects_and_Solutions</from>
+					<to>Sector_4_Fiscal_Liquidity_and_Rationing</to>
+				</connector>
+				<connector uid="10" isee:thickness="2" angle="16.5167" isee:autocreated="true">
+					<from>Sector_1_Talent_Conservation</from>
+					<to>Sector_4_Fiscal_Liquidity_and_Rationing</to>
+				</connector>
+				<connector uid="13" isee:thickness="2" angle="168.017" isee:autocreated="true">
+					<from>Sector_2_Firms_Adoption_Chain</from>
+					<to>Sector_1_Talent_Conservation</to>
+				</connector>
+				<connector uid="14" isee:thickness="2" angle="14.9393" isee:autocreated="true">
+					<from>Sector_3_RD_Projects_and_Solutions</from>
+					<to>Sector_2_Firms_Adoption_Chain</to>
+				</connector>
+				<connector uid="15" isee:thickness="2" angle="308.559" isee:autocreated="true">
+					<from>Sector_5_Macro_Policy_and_Calibration</from>
+					<to>Sector_2_Firms_Adoption_Chain</to>
+				</connector>
+				<connector uid="16" isee:thickness="2" angle="265.716" isee:autocreated="true">
+					<from>Sector_5_Macro_Policy_and_Calibration</from>
+					<to>Sector_3_RD_Projects_and_Solutions</to>
+				</connector>
+				<connector uid="17" isee:thickness="2" angle="315.807" isee:autocreated="true">
+					<from>Sector_1_Talent_Conservation</from>
+					<to>Sector_3_RD_Projects_and_Solutions</to>
+				</connector>
+				<connector uid="18" isee:thickness="2" angle="128.559" isee:autocreated="true">
+					<from>Sector_2_Firms_Adoption_Chain</from>
+					<to>Sector_5_Macro_Policy_and_Calibration</to>
+				</connector>
+				<connector uid="19" isee:thickness="2" angle="85.7158" isee:autocreated="true">
+					<from>Sector_3_RD_Projects_and_Solutions</from>
+					<to>Sector_5_Macro_Policy_and_Calibration</to>
+				</connector>
+			</view>
+		</views>
+	</model>
+	<model name="Sector_1_Talent_Conservation">
+		<variables>
+			<aux name="domestic talent demand" ai_state="C">
+				<doc>Total STI labor absorptive capacity demanded by adopting and innovative productive enterprises.</doc>
+				<eqn>innovative_firms*talent_per_innovative_firm+adopting_firms*talent_per_adopting_firm</eqn>
+				<units>People</units>
+			</aux>
+			<aux name="unabsorbed talent" ai_state="C">
+				<doc>Active researchers exceeding the absorption capacity of domestic firms driving brain drain pressures.</doc>
+				<eqn>MAX(0, active_sti_talent - domestic_talent_demand)</eqn>
+				<units>People</units>
+			</aux>
+			<aux name="desired talent intake" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Target annual recruitment of advanced students scaled by ecosystem prestige and attractiveness.</doc>
+				<eqn>base_talent_intake*sti_attractiveness_factor</eqn>
+				<units>People/Year</units>
+			</aux>
+			<aux name="total sti people" ai_state="C">
+				<doc>Total talent; changes only via formation and retirement.</doc>
+				<eqn>talent_in_training + active_sti_talent + diaspora_talent</eqn>
+				<units>People</units>
+			</aux>
+			<aux name="avg training duration" ai_state="C">
+				<doc>Mean training duration.</doc>
+				<eqn>4</eqn>
+				<units>Year</units>
+			</aux>
+			<aux name="base talent intake" ai_state="C">
+				<doc>Baseline annual intake capacity of university postgraduate systems.</doc>
+				<eqn>1412.5</eqn>
+				<units>People/Year</units>
+			</aux>
+			<aux name="talent per innovative firm" ai_state="C">
+				<doc>STI talent demanded per innovative firm.</doc>
+				<eqn>1.5</eqn>
+				<units>People/Firms</units>
+			</aux>
+			<aux name="talent per adopting firm" ai_state="C">
+				<doc>STI talent demanded per adopting firm.</doc>
+				<eqn>0.2</eqn>
+				<units>People/Firms</units>
+			</aux>
+			<aux name="base emigration rate" ai_state="C">
+				<doc>Base fractional emigration.</doc>
+				<eqn>0.0325</eqn>
+				<units>1/Year</units>
+			</aux>
+			<aux name="excess emigration rate" ai_state="C">
+				<doc>Fractional emigration of unabsorbed talent.</doc>
+				<eqn>0.15</eqn>
+				<units>1/Year</units>
+			</aux>
+			<aux name="base repatriation rate" ai_state="C">
+				<doc>Base fractional repatriation.</doc>
+				<eqn>0.03</eqn>
+				<units>1/Year</units>
+			</aux>
+			<aux name="retirement rate" ai_state="C">
+				<doc>Fractional retirement.</doc>
+				<eqn>0.03</eqn>
+				<units>1/Year</units>
+			</aux>
+			<flow name="new talent formation" ai_state="C">
+				<doc>Annual inflow of new trainees supported by executed national training and scholarship allocations.</doc>
+				<eqn>talent_program_funding_rate/cost_per_talent_trained</eqn>
+				<non_negative/>
+				<units>People/Year</units>
+			</flow>
+			<flow name="talent graduating" ai_state="C">
+				<doc>Completion rate of postgraduates transitioning into the active domestic STI labor market.</doc>
+				<eqn>talent_in_training/avg_training_duration</eqn>
+				<non_negative/>
+				<units>People/Year</units>
+			</flow>
+			<flow name="talent emigration" ai_state="C">
+				<doc>Outflow of active talent departing the country driven by baseline mobility and domestic labor absorption deficits.</doc>
+				<eqn>active_sti_talent*base_emigration_rate+unabsorbed_talent*excess_emigration_rate</eqn>
+				<non_negative/>
+				<units>People/Year</units>
+			</flow>
+			<flow name="talent repatriation" ai_state="C">
+				<doc>Flow of researchers returning from the diaspora modulated by ecosystem attractiveness.</doc>
+				<eqn>diaspora_talent*base_repatriation_rate*sti_attractiveness_factor</eqn>
+				<non_negative/>
+				<units>People/Year</units>
+			</flow>
+			<flow name="talent retirement" ai_state="C">
+				<doc>Natural demographic attrition of active researchers leaving the STI workforce.</doc>
+				<eqn>active_sti_talent*retirement_rate</eqn>
+				<non_negative/>
+				<units>People/Year</units>
+			</flow>
+			<aux name="talent program funding rate" ai_state="C" access="input">
+				<doc>Actual fiscal capital disbursed to fund postgraduate trainees and doctoral grants.</doc>
+				<eqn>{Enter equation for use when not hooked up to other models}</eqn>
+				<units>Million_USD/Year</units>
+			</aux>
+			<aux name="sti attractiveness factor" ai_state="C" access="input">
+				<doc>Composite ecosystem attractiveness index driving researcher retention, repatriation, and student aspirations.</doc>
+				<eqn>{Enter equation for use when not hooked up to other models}</eqn>
+				<units>dmnl</units>
+			</aux>
+			<stock name="talent in training" ai_state="C">
+				<doc>Talent currently in training.</doc>
+				<eqn>2400</eqn>
+				<inflow>new_talent_formation</inflow>
+				<outflow>talent_graduating</outflow>
+				<units>People</units>
+			</stock>
+			<stock name="active sti talent" ai_state="C" access="output" isee:autocreated="true">
+				<doc>STI talent active domestically.</doc>
+				<eqn>3550</eqn>
+				<inflow>talent_graduating</inflow>
+				<inflow>talent_repatriation</inflow>
+				<outflow>talent_emigration</outflow>
+				<outflow>talent_retirement</outflow>
+				<units>People</units>
+			</stock>
+			<stock name="diaspora talent" ai_state="C">
+				<doc>STI talent abroad.</doc>
+				<eqn>1800</eqn>
+				<inflow>talent_emigration</inflow>
+				<outflow>talent_repatriation</outflow>
+				<units>People</units>
+			</stock>
+			<stock name="innovative firms" ai_state="C" access="input">
+				<doc>Innovative firms.</doc>
+				<eqn>8000</eqn>
+				<units>Firms</units>
+			</stock>
+			<stock name="adopting firms" ai_state="C" access="input">
+				<doc>Firms adopting innovation.</doc>
+				<eqn>8000</eqn>
+				<units>Firms</units>
+			</stock>
+			<aux name="cost per talent trained" ai_state="C" access="input">
+				<doc>Cost per trained person.</doc>
+				<eqn>0.205</eqn>
+				<units>Million_USD/People</units>
+			</aux>
+		</variables>
+		<views>
+			<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+				<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+				<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+				<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+					<isee:series_styles>
+						<isee:series_style color="blue" thickness="1"/>
+						<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF7F00" thickness="1"/>
+						<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF007F" thickness="1"/>
+						<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#C8C8C8" thickness="1"/>
+					</isee:series_styles>
+				</graph>
+				<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				<button color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595"/>
+				<isee:annotation color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595" popup_corner_radius="0" popup_background_color="#FFFECF"/>
+				<slider color="#0075FF" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:stacked_container color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="0" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:dual_slider color="#66CC66" background="silver" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:sim_speed_slider color="black" background="white"/>
+				<isee:time_slider color="#E95F74" background="silver"/>
+				<isee:pie_input color="black" background="white" font_size="12pt" legend_position="bottom" isee:transparent="false"/>
+				<knob color="#66CC66" background="#E0E0E0" font_size="12pt" label_side="bottom" wrap_title="true"/>
+				<numeric_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<isee:dropdown_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<switch color="black" background="#E0E0E0" font_size="12pt" label_side="top" wrap_title="true" isee:appearance="switch" isee:on_color="green"/>
+				<options color="black" background="white" appearance="radio-buttons" arrangement="vertical"/>
+				<graphical_input color="black" background="#E0E0E0" font_size="12pt" isee:show_hover_tip="true"/>
+				<group_input color="black" background="#E0E0E0" font_size="12pt"/>
+				<lamp color="black" background="white" font_size="9pt"/>
+				<gauge color="black" background="white" font_size="9pt" needle_color="#F09F72" bar_color="#EEEEEE" bar_progress_color="black" appearance="radial" num_major_ticks="11" num_minor_ticks="1" show_numeric_value="true"/>
+				<isee:spatial_map color="black" background="white" font_size="12pt"/>
+				<isee:animation_object color="black" background="white" font_size="12pt"/>
+				<isee:navigation_widget color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="6" appearance="tabs" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:shape color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid" opacity="1" transparent_background="true" corner_radius="1"/>
+				<isee:selector color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
+				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+			</style>
+			<view isee:show_pages="false" background="white" page_width="768" page_height="576" isee:page_cols="27" isee:page_rows="8" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+					<stock color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="45" height="35"/>
+					</stock>
+					<flow color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</flow>
+					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="9pt" label_side="bottom"/>
+					<module color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="55" height="45"/>
+					</module>
+					<aux color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</aux>
+					<group color="red" background="white" font_color="red" font_size="9pt"/>
+					<connector color="#FF007F" background="white" font_color="#FF007F" font_size="9pt" isee:thickness="1"/>
+					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+					<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+					<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+						<isee:series_styles>
+							<isee:series_style color="blue" thickness="1"/>
+							<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF7F00" thickness="1"/>
+							<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF007F" thickness="1"/>
+							<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#C8C8C8" thickness="1"/>
+						</isee:series_styles>
+					</graph>
+					<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				</style>
+				<aux x="574.375" y="734.824" name="domestic talent demand"/>
+				<aux x="456.375" y="658.824" name="unabsorbed talent"/>
+				<aux x="288.375" y="949.824" name="desired talent intake"/>
+				<aux x="299.375" y="269.824" name="total sti people"/>
+				<aux x="502.625" y="442.5" name="avg training duration"/>
+				<aux x="236.375" y="823.824" name="base talent intake"/>
+				<aux x="716.375" y="779.824" name="talent per innovative firm"/>
+				<aux x="588.375" y="879.824" name="talent per adopting firm"/>
+				<aux x="457.5" y="677.5" name="base emigration rate"/>
+				<aux x="555.75" y="677.5" name="excess emigration rate"/>
+				<aux x="440.5" y="677.5" name="base repatriation rate"/>
+				<aux x="1158.43" y="274.5" name="retirement rate"/>
+				<flow label_side="bottom" x="1947.88" y="2980.9" name="new talent formation">
+					<pts>
+						<pt x="1947.88" y="4144.47"/>
+						<pt x="1947.88" y="1817.32"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="2053.13" y="1799.82" name="talent graduating">
+					<pts>
+						<pt x="1970.38" y="1799.82"/>
+						<pt x="2147.88" y="1799.82"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="2076.38" y="2034.82" name="talent emigration">
+					<pts>
+						<pt x="2170.38" y="1817.32"/>
+						<pt x="2170.38" y="2034.82"/>
+						<pt x="1970.38" y="2034.82"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="2070.38" y="2034.82" name="talent repatriation">
+					<pts>
+						<pt x="1970.38" y="2034.82"/>
+						<pt x="2170.38" y="2034.82"/>
+						<pt x="2170.38" y="1817.32"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="2119.88" y="1782.32" name="talent retirement">
+					<pts>
+						<pt x="2147.88" y="1782.32"/>
+						<pt x="2067.88" y="1782.32"/>
+					</pts>
+				</flow>
+				<aux font_style="italic" font_weight="bold" x="418.4" y="460" name="talent program funding rate"/>
+				<aux font_style="italic" font_weight="bold" x="568.375" y="670.824" name="sti attractiveness factor"/>
+				<connector uid="2" polarity="-" isee:polarity_placement="outside" angle="318.801">
+					<isee:documentation>Reasoning:
+Longer average training slows the annual graduation rate.
+
+Polarity Reasoning: 
+Higher duration decreases graduation throughput.</isee:documentation>
+					<isee:reasoning>Longer average training slows the annual graduation rate.</isee:reasoning>
+					<isee:polarity_reasoning>Higher duration decreases graduation throughput.</isee:polarity_reasoning>
+					<from>avg_training_duration</from>
+					<to>talent_graduating</to>
+				</connector>
+				<connector uid="5" polarity="-" isee:polarity_placement="outside" angle="147.216">
+					<isee:documentation>Reasoning:
+Higher firm employment demand absorbs talent, reducing surplus.
+
+Polarity Reasoning: 
+Reduces unabsorbed talent pool.</isee:documentation>
+					<isee:reasoning>Higher firm employment demand absorbs talent, reducing surplus.</isee:reasoning>
+					<isee:polarity_reasoning>Reduces unabsorbed talent pool.</isee:polarity_reasoning>
+					<from>domestic_talent_demand</from>
+					<to>unabsorbed_talent</to>
+				</connector>
+				<connector uid="7" polarity="+" isee:polarity_placement="outside" angle="162.417">
+					<isee:documentation>Reasoning:
+Higher researcher staffing density raises overall industrial demand.
+
+Polarity Reasoning: 
+Increases aggregate talent demand.</isee:documentation>
+					<isee:reasoning>Higher researcher staffing density raises overall industrial demand.</isee:reasoning>
+					<isee:polarity_reasoning>Increases aggregate talent demand.</isee:polarity_reasoning>
+					<from>talent_per_innovative_firm</from>
+					<to>domestic_talent_demand</to>
+				</connector>
+				<connector uid="9" polarity="+" isee:polarity_placement="outside" angle="95.5149">
+					<isee:documentation>Reasoning:
+Technical staffing per adopting firm scales domestic demand.
+
+Polarity Reasoning: 
+Increases talent demand.</isee:documentation>
+					<isee:reasoning>Technical staffing per adopting firm scales domestic demand.</isee:reasoning>
+					<isee:polarity_reasoning>Increases talent demand.</isee:polarity_reasoning>
+					<from>talent_per_adopting_firm</from>
+					<to>domestic_talent_demand</to>
+				</connector>
+				<connector uid="11" polarity="+" isee:polarity_placement="outside" angle="320.022">
+					<isee:documentation>Reasoning:
+Higher base propensity raises the baseline flow of emigrants.
+
+Polarity Reasoning: 
+Direct positive effect on emigration.</isee:documentation>
+					<isee:reasoning>Higher base propensity raises the baseline flow of emigrants.</isee:reasoning>
+					<isee:polarity_reasoning>Direct positive effect on emigration.</isee:polarity_reasoning>
+					<from>base_emigration_rate</from>
+					<to>talent_emigration</to>
+				</connector>
+				<connector uid="12" polarity="+" isee:polarity_placement="outside" angle="319.656">
+					<isee:documentation>Reasoning:
+Lack of local job opportunities accelerates researcher flight overseas.
+
+Polarity Reasoning: 
+More unabsorbed talent directly accelerates emigration.</isee:documentation>
+					<isee:reasoning>Lack of local job opportunities accelerates researcher flight overseas.</isee:reasoning>
+					<isee:polarity_reasoning>More unabsorbed talent directly accelerates emigration.</isee:polarity_reasoning>
+					<from>unabsorbed_talent</from>
+					<to>talent_emigration</to>
+				</connector>
+				<connector uid="13" polarity="+" isee:polarity_placement="outside" angle="318.248">
+					<isee:documentation>Reasoning:
+Higher sensitivity to unemployment increases brain drain intensity.
+
+Polarity Reasoning: 
+Increases emigration rate.</isee:documentation>
+					<isee:reasoning>Higher sensitivity to unemployment increases brain drain intensity.</isee:reasoning>
+					<isee:polarity_reasoning>Increases emigration rate.</isee:polarity_reasoning>
+					<from>excess_emigration_rate</from>
+					<to>talent_emigration</to>
+				</connector>
+				<connector uid="15" polarity="+" isee:polarity_placement="outside" angle="320.213">
+					<isee:documentation>Reasoning:
+Higher willingness to return raises the return flow.
+
+Polarity Reasoning: 
+Increases repatriation rate.</isee:documentation>
+					<isee:reasoning>Higher willingness to return raises the return flow.</isee:reasoning>
+					<isee:polarity_reasoning>Increases repatriation rate.</isee:polarity_reasoning>
+					<from>base_repatriation_rate</from>
+					<to>talent_repatriation</to>
+				</connector>
+				<connector uid="16" polarity="+" isee:polarity_placement="outside" angle="311.581">
+					<isee:documentation>Reasoning:
+Ecosystem prestige and opportunity encourage scientists abroad to return.
+
+Polarity Reasoning: 
+High attractiveness amplifies repatriation.</isee:documentation>
+					<isee:reasoning>Ecosystem prestige and opportunity encourage scientists abroad to return.</isee:reasoning>
+					<isee:polarity_reasoning>High attractiveness amplifies repatriation.</isee:polarity_reasoning>
+					<from>
+						<alias uid="17"/>
+					</from>
+					<to>talent_repatriation</to>
+				</connector>
+				<connector uid="19" polarity="+" isee:polarity_placement="outside" angle="302.523">
+					<isee:documentation>Reasoning:
+Higher demographic turnover raises retirements.
+
+Polarity Reasoning: 
+Direct positive link.</isee:documentation>
+					<isee:reasoning>Higher demographic turnover raises retirements.</isee:reasoning>
+					<isee:polarity_reasoning>Direct positive link.</isee:polarity_reasoning>
+					<from>retirement_rate</from>
+					<to>talent_retirement</to>
+				</connector>
+				<connector uid="20" angle="292.426">
+					<from>base_talent_intake</from>
+					<to>desired_talent_intake</to>
+				</connector>
+				<connector uid="21" polarity="+" isee:polarity_placement="outside" angle="178.025">
+					<isee:documentation>Reasoning:
+Greater attractiveness attracts more applicants and expands recruitment targets.
+
+Polarity Reasoning: 
+Increases desired talent intake.</isee:documentation>
+					<isee:reasoning>Greater attractiveness attracts more applicants and expands recruitment targets.</isee:reasoning>
+					<isee:polarity_reasoning>Increases desired talent intake.</isee:polarity_reasoning>
+					<from>
+						<alias uid="22"/>
+					</from>
+					<to>desired_talent_intake</to>
+				</connector>
+				<connector uid="27" polarity="+" isee:polarity_placement="outside" angle="301.246">
+					<isee:documentation>Reasoning:
+Funding disbursements pay for new student cohorts.
+
+Polarity Reasoning: 
+More funding expands student formation.</isee:documentation>
+					<isee:reasoning>Funding disbursements pay for new student cohorts.</isee:reasoning>
+					<isee:polarity_reasoning>More funding expands student formation.</isee:polarity_reasoning>
+					<from>talent_program_funding_rate</from>
+					<to>new_talent_formation</to>
+				</connector>
+				<stock x="1947.88" y="1799.82" name="talent in training"/>
+				<stock x="2170.38" y="1799.82" name="active sti talent"/>
+				<stock x="1947.88" y="2034.82" name="diaspora talent"/>
+				<connector uid="29" angle="288.199">
+					<from>active_sti_talent</from>
+					<to>talent_emigration</to>
+				</connector>
+				<connector uid="30" angle="40">
+					<from>talent_in_training</from>
+					<to>talent_graduating</to>
+				</connector>
+				<connector uid="31" angle="40">
+					<from>diaspora_talent</from>
+					<to>talent_repatriation</to>
+				</connector>
+				<connector uid="32" angle="200.887">
+					<from>active_sti_talent</from>
+					<to>talent_retirement</to>
+				</connector>
+				<connector uid="33" angle="137.135">
+					<from>talent_in_training</from>
+					<to>total_sti_people</to>
+				</connector>
+				<connector uid="34" angle="140.726">
+					<from>active_sti_talent</from>
+					<to>total_sti_people</to>
+				</connector>
+				<connector uid="35" angle="133.045">
+					<from>diaspora_talent</from>
+					<to>total_sti_people</to>
+				</connector>
+				<stock font_style="italic" font_weight="bold" x="723.041" y="737.324" name="innovative firms"/>
+				<stock font_style="italic" font_weight="bold" x="693.625" y="853.324" name="adopting firms"/>
+				<aux font_style="italic" font_weight="bold" x="1918.88" y="3039.9" name="cost per talent trained"/>
+				<connector uid="36" angle="88.8247">
+					<from>cost_per_talent_trained</from>
+					<to>new_talent_formation</to>
+				</connector>
+				<connector uid="37" angle="179.037">
+					<from>innovative_firms</from>
+					<to>domestic_talent_demand</to>
+				</connector>
+				<connector uid="38" angle="135.181">
+					<from>adopting_firms</from>
+					<to>domestic_talent_demand</to>
+				</connector>
+				<connector uid="39" angle="171.349">
+					<from>active_sti_talent</from>
+					<to>unabsorbed_talent</to>
+				</connector>
+				<alias font_style="italic" font_weight="bold" uid="17" x="668.375" y="455.824" width="18" height="18">
+					<of>sti_attractiveness_factor</of>
+				</alias>
+				<alias font_style="italic" font_weight="bold" uid="22" x="395.375" y="944.824" width="18" height="18">
+					<of>sti_attractiveness_factor</of>
+				</alias>
+			</view>
+		</views>
+	</model>
+	<model name="Sector_2_Firms_Adoption_Chain">
+		<variables>
+			<aux name="firm creation rate base" ai_state="C">
+				<doc>Fractional firm creation.</doc>
+				<eqn>0.03</eqn>
+				<units>1/Year</units>
+			</aux>
+			<aux name="base adoption rate" ai_state="C">
+				<doc>Base fractional adoption.</doc>
+				<eqn>0.0107</eqn>
+				<units>1/Year</units>
+			</aux>
+			<aux name="base regression rate" ai_state="C">
+				<doc>Base fractional regression.</doc>
+				<eqn>0.05</eqn>
+				<units>1/Year</units>
+			</aux>
+			<aux name="firm exit rate base" ai_state="C">
+				<doc>Base fractional firm exit.</doc>
+				<eqn>0.025</eqn>
+				<units>1/Year</units>
+			</aux>
+			<aux name="innovative exit multiplier" ai_state="C">
+				<doc>Innovative firms exit at this fraction of the base exit rate.</doc>
+				<eqn>0.5</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="avg adoption duration" ai_state="C">
+				<doc>Mean adoption duration.</doc>
+				<eqn>4</eqn>
+				<units>Year</units>
+			</aux>
+			<flow name="new firm creation" ai_state="C">
+				<doc>Gross entrepreneurial creation of new traditional businesses in the economy.</doc>
+				<eqn>total_firms*firm_creation_rate_base</eqn>
+				<non_negative/>
+				<units>Firms/Years</units>
+			</flow>
+			<flow name="firm adoption rate" ai_state="C">
+				<doc>Rate at which traditional firms transition to technology adoption spurred by available solutions and institutional linkage.</doc>
+				<eqn>traditional_firms*base_adoption_rate*(active_industrial_solutions/(active_industrial_solutions+ref_solutions_half_sat))*gov_uni_ind_linkage</eqn>
+				<non_negative/>
+				<units>Firms/Years</units>
+			</flow>
+			<flow name="firm conversion rate" ai_state="C">
+				<doc>Conversion of adopting firms into mature innovative enterprises reinforced by systems engineering rigor.</doc>
+				<eqn>adopting_firms*incose_rigor_index/avg_adoption_duration</eqn>
+				<non_negative/>
+				<units>Firms/Years</units>
+			</flow>
+			<flow name="firm regression rate" ai_state="C">
+				<doc>Loss of innovation standing back to intermediate adopting status caused by inadequate methodology maintenance.</doc>
+				<eqn>innovative_firms*base_regression_rate*(1-incose_rigor_index)</eqn>
+				<non_negative/>
+				<units>Firms/Years</units>
+			</flow>
+			<flow name="traditional firm exit" ai_state="C">
+				<doc>Exit and closure of conventional enterprises due to general market obsolescence and competition.</doc>
+				<eqn>traditional_firms*firm_exit_rate_base</eqn>
+				<non_negative/>
+				<units>Firms/Years</units>
+			</flow>
+			<flow name="adopting firm exit" ai_state="C">
+				<doc>Business closure rate among enterprises in the adoption stage.</doc>
+				<eqn>adopting_firms*firm_exit_rate_base</eqn>
+				<non_negative/>
+				<units>Firms/Years</units>
+			</flow>
+			<flow name="innovative firm exit" ai_state="C">
+				<doc>Exit rate of innovative enterprises reflecting lower business failure probabilities.</doc>
+				<eqn>innovative_firms*firm_exit_rate_base*innovative_exit_multiplier</eqn>
+				<non_negative/>
+				<units>Firms/Years</units>
+			</flow>
+			<stock name="adopting firms" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Firms adopting innovation.</doc>
+				<eqn>8000</eqn>
+				<inflow>firm_adoption_rate</inflow>
+				<inflow>firm_regression_rate</inflow>
+				<outflow>firm_conversion_rate</outflow>
+				<outflow>adopting_firm_exit</outflow>
+				<units>Firms</units>
+			</stock>
+			<aux name="total firms" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Total firms; changes only via creation and exit.</doc>
+				<eqn>traditional_firms + adopting_firms + innovative_firms</eqn>
+				<units>Firms</units>
+			</aux>
+			<stock name="innovative firms" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Innovative firms.</doc>
+				<eqn>8000</eqn>
+				<inflow>firm_conversion_rate</inflow>
+				<outflow>firm_regression_rate</outflow>
+				<outflow>innovative_firm_exit</outflow>
+				<units>Firms</units>
+			</stock>
+			<stock name="active industrial solutions" ai_state="C" access="input">
+				<doc>Solutions in industrial use.</doc>
+				<eqn>600</eqn>
+				<units>Projects</units>
+			</stock>
+			<aux name="ref solutions half sat" ai_state="C" access="input">
+				<doc>Half-saturation level of active solutions.</doc>
+				<eqn>600.0</eqn>
+				<units>Projects</units>
+			</aux>
+			<aux name="incose rigor index" ai_state="C" access="input">
+				<doc>Systems engineering rigor policy lever (0-1).</doc>
+				<eqn>0.6</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="gov uni ind linkage" ai_state="C" access="input">
+				<doc>Government-university-industry linkage policy lever (0-1).</doc>
+				<eqn>0.5</eqn>
+				<units>dmnl</units>
+			</aux>
+			<stock name="traditional firms" ai_state="C">
+				<doc>Traditional firms.</doc>
+				<eqn>84000</eqn>
+				<inflow>new_firm_creation</inflow>
+				<outflow>firm_adoption_rate</outflow>
+				<outflow>traditional_firm_exit</outflow>
+				<units>Firms</units>
+			</stock>
+		</variables>
+		<views>
+			<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+				<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+				<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+				<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+					<isee:series_styles>
+						<isee:series_style color="blue" thickness="1"/>
+						<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF7F00" thickness="1"/>
+						<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF007F" thickness="1"/>
+						<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#C8C8C8" thickness="1"/>
+					</isee:series_styles>
+				</graph>
+				<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				<button color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595"/>
+				<isee:annotation color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595" popup_corner_radius="0" popup_background_color="#FFFECF"/>
+				<slider color="#0075FF" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:stacked_container color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="0" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:dual_slider color="#66CC66" background="silver" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:sim_speed_slider color="black" background="white"/>
+				<isee:time_slider color="#E95F74" background="silver"/>
+				<isee:pie_input color="black" background="white" font_size="12pt" legend_position="bottom" isee:transparent="false"/>
+				<knob color="#66CC66" background="#E0E0E0" font_size="12pt" label_side="bottom" wrap_title="true"/>
+				<numeric_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<isee:dropdown_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<switch color="black" background="#E0E0E0" font_size="12pt" label_side="top" wrap_title="true" isee:appearance="switch" isee:on_color="green"/>
+				<options color="black" background="white" appearance="radio-buttons" arrangement="vertical"/>
+				<graphical_input color="black" background="#E0E0E0" font_size="12pt" isee:show_hover_tip="true"/>
+				<group_input color="black" background="#E0E0E0" font_size="12pt"/>
+				<lamp color="black" background="white" font_size="9pt"/>
+				<gauge color="black" background="white" font_size="9pt" needle_color="#F09F72" bar_color="#EEEEEE" bar_progress_color="black" appearance="radial" num_major_ticks="11" num_minor_ticks="1" show_numeric_value="true"/>
+				<isee:spatial_map color="black" background="white" font_size="12pt"/>
+				<isee:animation_object color="black" background="white" font_size="12pt"/>
+				<isee:navigation_widget color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="6" appearance="tabs" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:shape color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid" opacity="1" transparent_background="true" corner_radius="1"/>
+				<isee:selector color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
+				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+			</style>
+			<view isee:show_pages="false" background="white" page_width="768" page_height="576" isee:page_cols="6" isee:page_rows="3" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+					<stock color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="45" height="35"/>
+					</stock>
+					<flow color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</flow>
+					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="9pt" label_side="bottom"/>
+					<module color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="55" height="45"/>
+					</module>
+					<aux color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</aux>
+					<group color="red" background="white" font_color="red" font_size="9pt"/>
+					<connector color="#FF007F" background="white" font_color="#FF007F" font_size="9pt" isee:thickness="1"/>
+					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+					<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+					<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+						<isee:series_styles>
+							<isee:series_style color="blue" thickness="1"/>
+							<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF7F00" thickness="1"/>
+							<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF007F" thickness="1"/>
+							<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#C8C8C8" thickness="1"/>
+						</isee:series_styles>
+					</graph>
+					<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				</style>
+				<aux x="645.5" y="121.187" name="firm creation rate base"/>
+				<aux x="613.375" y="677.875" name="base adoption rate"/>
+				<aux x="793" y="912.875" name="base regression rate"/>
+				<aux x="793.75" y="242.375" name="firm exit rate base"/>
+				<aux x="471" y="627.375" name="innovative exit multiplier"/>
+				<aux x="757.875" y="866.875" name="avg adoption duration"/>
+				<flow label_side="bottom" x="1953.58" y="168.769" name="new firm creation">
+					<pts>
+						<pt x="1766.08" y="168.769"/>
+						<pt x="2141.08" y="168.769"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="2025.96" y="454.875" name="firm adoption rate">
+					<pts>
+						<pt x="2163.58" y="203.769"/>
+						<pt x="2163.58" y="454.875"/>
+						<pt x="1876.34" y="454.875"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="1726.09" y="454.875" name="firm conversion rate">
+					<pts>
+						<pt x="1808.84" y="454.875"/>
+						<pt x="1631.34" y="454.875"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="1714.09" y="454.875" name="firm regression rate">
+					<pts>
+						<pt x="1631.34" y="454.875"/>
+						<pt x="1808.84" y="454.875"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="2165.58" y="94.8847" name="traditional firm exit">
+					<pts>
+						<pt x="2165.58" y="168.769"/>
+						<pt x="2165.58" y="0"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="1926.84" y="476.625" name="adopting firm exit">
+					<pts>
+						<pt x="1876.34" y="476.625"/>
+						<pt x="2001.34" y="476.625"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="2451.99" y="437.375" name="innovative firm exit">
+					<pts>
+						<pt x="1631.34" y="437.375"/>
+						<pt x="3296.65" y="437.375"/>
+					</pts>
+				</flow>
+				<connector uid="7" polarity="+" isee:polarity_placement="outside" angle="357.917">
+					<isee:documentation>Reasoning:
+Higher baseline entry propensity stimulates firm creation.
+
+Polarity Reasoning: 
+Direct positive link.</isee:documentation>
+					<isee:reasoning>Higher baseline entry propensity stimulates firm creation.</isee:reasoning>
+					<isee:polarity_reasoning>Direct positive link.</isee:polarity_reasoning>
+					<from>firm_creation_rate_base</from>
+					<to>new_firm_creation</to>
+				</connector>
+				<connector uid="9" polarity="+" isee:polarity_placement="outside" angle="8.97105">
+					<isee:documentation>Reasoning:
+Higher nominal willingness to modernize increases adoption speed.
+
+Polarity Reasoning: 
+Direct positive link.</isee:documentation>
+					<isee:reasoning>Higher nominal willingness to modernize increases adoption speed.</isee:reasoning>
+					<isee:polarity_reasoning>Direct positive link.</isee:polarity_reasoning>
+					<from>base_adoption_rate</from>
+					<to>firm_adoption_rate</to>
+				</connector>
+				<connector uid="16" polarity="-" isee:polarity_placement="outside" angle="23.051">
+					<isee:documentation>Reasoning:
+Longer adoption periods delay maturation into innovative status.
+
+Polarity Reasoning: 
+Decreases annual conversion rate.</isee:documentation>
+					<isee:reasoning>Longer adoption periods delay maturation into innovative status.</isee:reasoning>
+					<isee:polarity_reasoning>Decreases annual conversion rate.</isee:polarity_reasoning>
+					<from>avg_adoption_duration</from>
+					<to>firm_conversion_rate</to>
+				</connector>
+				<connector uid="18" polarity="+" isee:polarity_placement="outside" angle="26.4383">
+					<isee:documentation>Reasoning:
+Baseline capability decay rate raises regression.
+
+Polarity Reasoning: 
+Direct positive link.</isee:documentation>
+					<isee:reasoning>Baseline capability decay rate raises regression.</isee:reasoning>
+					<isee:polarity_reasoning>Direct positive link.</isee:polarity_reasoning>
+					<from>base_regression_rate</from>
+					<to>firm_regression_rate</to>
+				</connector>
+				<connector uid="22" polarity="+" isee:polarity_placement="outside" angle="6.13648">
+					<isee:documentation>Reasoning:
+Higher macro failure rate increases traditional firm closures.
+
+Polarity Reasoning: 
+Increases exits.</isee:documentation>
+					<isee:reasoning>Higher macro failure rate increases traditional firm closures.</isee:reasoning>
+					<isee:polarity_reasoning>Increases exits.</isee:polarity_reasoning>
+					<from>firm_exit_rate_base</from>
+					<to>traditional_firm_exit</to>
+				</connector>
+				<connector uid="24" polarity="+" isee:polarity_placement="outside" angle="339.314">
+					<isee:documentation>Reasoning:
+Baseline exit rate governs business insolvency.
+
+Polarity Reasoning: 
+Increases exits.</isee:documentation>
+					<isee:reasoning>Baseline exit rate governs business insolvency.</isee:reasoning>
+					<isee:polarity_reasoning>Increases exits.</isee:polarity_reasoning>
+					<from>
+						<alias uid="25"/>
+					</from>
+					<to>adopting_firm_exit</to>
+				</connector>
+				<connector uid="27" polarity="+" isee:polarity_placement="outside" angle="2.8923">
+					<isee:documentation>Reasoning:
+General economic downturns affect innovative firms as well.
+
+Polarity Reasoning: 
+Increases exits.</isee:documentation>
+					<isee:reasoning>General economic downturns affect innovative firms as well.</isee:reasoning>
+					<isee:polarity_reasoning>Increases exits.</isee:polarity_reasoning>
+					<from>
+						<alias uid="28"/>
+					</from>
+					<to>innovative_firm_exit</to>
+				</connector>
+				<connector uid="29" polarity="+" isee:polarity_placement="outside" angle="5.47856">
+					<isee:documentation>Reasoning:
+Multiplier determines relative resilience against business insolvency.
+
+Polarity Reasoning: 
+Higher multiplier increases innovative firm exit.</isee:documentation>
+					<isee:reasoning>Multiplier determines relative resilience against business insolvency.</isee:reasoning>
+					<isee:polarity_reasoning>Higher multiplier increases innovative firm exit.</isee:polarity_reasoning>
+					<from>innovative_exit_multiplier</from>
+					<to>innovative_firm_exit</to>
+				</connector>
+				<stock x="1808.84" y="428.625" width="67.5" height="52.5" name="adopting firms"/>
+				<connector uid="30" angle="25.5246">
+					<from>adopting_firms</from>
+					<to>adopting_firm_exit</to>
+				</connector>
+				<connector uid="31" angle="220">
+					<from>adopting_firms</from>
+					<to>firm_conversion_rate</to>
+				</connector>
+				<aux x="1457.84" y="796.875" name="total firms"/>
+				<stock x="1608.84" y="454.875" name="innovative firms"/>
+				<connector uid="32" angle="41.189">
+					<from>innovative_firms</from>
+					<to>innovative_firm_exit</to>
+				</connector>
+				<connector uid="33" angle="71.7172">
+					<from>total_firms</from>
+					<to>new_firm_creation</to>
+				</connector>
+				<connector uid="34" angle="222.574">
+					<from>adopting_firms</from>
+					<to>total_firms</to>
+				</connector>
+				<connector uid="35" angle="226.178">
+					<from>innovative_firms</from>
+					<to>total_firms</to>
+				</connector>
+				<stock font_style="italic" font_weight="bold" x="2179.09" y="559.875" name="active industrial solutions"/>
+				<aux font_style="italic" font_weight="bold" x="2298.34" y="559.875" name="ref solutions half sat"/>
+				<aux font_style="italic" font_weight="bold" x="2319.09" y="744.375" name="incose rigor index"/>
+				<aux font_style="italic" font_weight="bold" x="2429.59" y="559.875" name="gov uni ind linkage"/>
+				<connector uid="36" angle="170.562">
+					<from>active_industrial_solutions</from>
+					<to>firm_adoption_rate</to>
+				</connector>
+				<connector uid="37" angle="183.919">
+					<from>ref_solutions_half_sat</from>
+					<to>firm_adoption_rate</to>
+				</connector>
+				<connector uid="38" angle="190.418">
+					<from>gov_uni_ind_linkage</from>
+					<to>firm_adoption_rate</to>
+				</connector>
+				<connector uid="39" angle="178.979">
+					<from>incose_rigor_index</from>
+					<to>firm_conversion_rate</to>
+				</connector>
+				<connector uid="40" angle="40">
+					<from>innovative_firms</from>
+					<to>firm_regression_rate</to>
+				</connector>
+				<connector uid="41" angle="179.428">
+					<from>incose_rigor_index</from>
+					<to>firm_regression_rate</to>
+				</connector>
+				<stock x="2163.58" y="186.269" name="traditional firms"/>
+				<connector uid="42" angle="282.872">
+					<from>traditional_firms</from>
+					<to>firm_adoption_rate</to>
+				</connector>
+				<connector uid="43" angle="128.746">
+					<from>traditional_firms</from>
+					<to>traditional_firm_exit</to>
+				</connector>
+				<connector uid="44" angle="240.866">
+					<from>traditional_firms</from>
+					<to>total_firms</to>
+				</connector>
+				<alias color="blue" background="white" font_style="italic" uid="25" x="951.84" y="102.875" width="18" height="18">
+					<shape type="circle" radius="18"/>
+					<of>firm_exit_rate_base</of>
+				</alias>
+				<alias color="blue" background="white" font_style="italic" uid="28" x="354.84" y="533.875" width="18" height="18">
+					<shape type="circle" radius="18"/>
+					<of>firm_exit_rate_base</of>
+				</alias>
+			</view>
+		</views>
+	</model>
+	<model name="Sector_3_RD_Projects_and_Solutions">
+		<variables>
+			<aux name="total projects" ai_state="C">
+				<doc>Conservation total of the project chain (changes only via initiation, stagnation, obsolescence).</doc>
+				<eqn>rd_projects_pipeline + transferred_solutions + active_industrial_solutions</eqn>
+				<units>Projects</units>
+			</aux>
+			<aux name="transfer efficacy" ai_state="C">
+				<doc>Effective technology transfer multiplier combining systems engineering discipline with university-industry linkages.</doc>
+				<eqn>incose_weight*incose_rigor_index+linkage_weight*gov_uni_ind_linkage</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="desired project starts" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Volume of new project proposals formulated by the domestic researcher workforce.</doc>
+				<eqn>active_sti_talent*project_proposal_propensity</eqn>
+				<units>Projects/Year</units>
+			</aux>
+			<aux name="avg project duration" ai_state="C">
+				<doc>Mean project duration.</doc>
+				<eqn>3</eqn>
+				<units>Year</units>
+			</aux>
+			<aux name="incose weight" ai_state="C">
+				<doc>Weight of rigor in transfer efficacy.</doc>
+				<eqn>0.7</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="linkage weight" ai_state="C">
+				<doc>Weight of linkage in transfer efficacy.</doc>
+				<eqn>0.3</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="delay time rd transfer" ai_state="C">
+				<doc>Transfer delay.</doc>
+				<eqn>4</eqn>
+				<units>Year</units>
+			</aux>
+			<aux name="stagnation rate base" ai_state="C">
+				<doc>Fractional stagnation rate of transferred solutions.</doc>
+				<eqn>0.1588</eqn>
+				<units>1/Year</units>
+			</aux>
+			<aux name="solution lifetime" ai_state="C">
+				<doc>Mean solution lifetime.</doc>
+				<eqn>8</eqn>
+				<units>Year</units>
+			</aux>
+			<aux name="project proposal propensity" ai_state="C">
+				<doc>Proposal submission productivity per active domestic researcher.</doc>
+				<eqn>0.1075</eqn>
+				<units>Projects/(People*Year)</units>
+			</aux>
+			<flow name="new rd project initiation" ai_state="C">
+				<doc>Rate of initiating new research endeavors supported by allocated funding.</doc>
+				<eqn>rd_project_funding_rate/avg_cost_per_project</eqn>
+				<non_negative/>
+				<units>Projects/Year</units>
+			</flow>
+			<flow name="project completion rate" ai_state="C">
+				<doc>Annual volume of research projects successfully completing the developmental stage.</doc>
+				<eqn>rd_projects_pipeline/avg_project_duration</eqn>
+				<non_negative/>
+				<units>Projects/Year</units>
+			</flow>
+			<flow name="solution transfer rate" ai_state="C">
+				<doc>Successful deployment of intellectual property into productive industrial application.</doc>
+				<eqn>transferred_solutions*transfer_efficacy/delay_time_rd_transfer</eqn>
+				<non_negative/>
+				<units>Projects/Year</units>
+			</flow>
+			<flow name="transfer stagnation rate" ai_state="C">
+				<doc>Valley of death attrition where prototypes fail commercial transfer due to institutional friction.</doc>
+				<eqn>transferred_solutions*stagnation_rate_base</eqn>
+				<non_negative/>
+				<units>Projects/Year</units>
+			</flow>
+			<flow name="solution obsolescence rate" ai_state="C">
+				<doc>Technological depreciation and phase-out of industrial solutions over time.</doc>
+				<eqn>active_industrial_solutions/solution_lifetime</eqn>
+				<non_negative/>
+				<units>Projects/Year</units>
+			</flow>
+			<aux name="rd project funding rate" ai_state="C" access="input">
+				<doc>Actual fiscal capital disbursed to execute approved research projects.</doc>
+				<eqn>{Enter equation for use when not hooked up to other models}</eqn>
+				<units>Million_USD/Year</units>
+			</aux>
+			<aux name="avg cost per project" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Average cost per R&amp;D project.</doc>
+				<eqn>2.1187</eqn>
+				<units>Million_USD/Projects</units>
+			</aux>
+			<aux name="ref solutions half sat" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Half-saturation level of active solutions.</doc>
+				<eqn>600.0</eqn>
+				<units>Projects</units>
+			</aux>
+			<stock name="rd projects pipeline" ai_state="C">
+				<doc>R&amp;D projects under execution.</doc>
+				<eqn>950</eqn>
+				<inflow>new_rd_project_initiation</inflow>
+				<outflow>project_completion_rate</outflow>
+				<units>Projects</units>
+			</stock>
+			<stock name="transferred solutions" ai_state="C">
+				<doc>Completed projects awaiting industrial transfer.</doc>
+				<eqn>350</eqn>
+				<inflow>project_completion_rate</inflow>
+				<outflow>solution_transfer_rate</outflow>
+				<outflow>transfer_stagnation_rate</outflow>
+				<units>Projects</units>
+			</stock>
+			<stock name="active industrial solutions" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Solutions in industrial use.</doc>
+				<eqn>600</eqn>
+				<inflow>solution_transfer_rate</inflow>
+				<outflow>solution_obsolescence_rate</outflow>
+				<units>Projects</units>
+			</stock>
+			<aux name="incose rigor index" ai_state="C" access="input">
+				<doc>Systems engineering rigor policy lever (0-1).</doc>
+				<eqn>0.6</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="gov uni ind linkage" ai_state="C" access="input">
+				<doc>Government-university-industry linkage policy lever (0-1).</doc>
+				<eqn>0.5</eqn>
+				<units>dmnl</units>
+			</aux>
+			<stock name="active sti talent" ai_state="C" access="input">
+				<doc>STI talent active domestically.</doc>
+				<eqn>3550</eqn>
+				<units>People</units>
+			</stock>
+		</variables>
+		<views>
+			<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+				<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+				<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+				<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+					<isee:series_styles>
+						<isee:series_style color="blue" thickness="1"/>
+						<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF7F00" thickness="1"/>
+						<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF007F" thickness="1"/>
+						<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#C8C8C8" thickness="1"/>
+					</isee:series_styles>
+				</graph>
+				<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				<button color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595"/>
+				<isee:annotation color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595" popup_corner_radius="0" popup_background_color="#FFFECF"/>
+				<slider color="#0075FF" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:stacked_container color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="0" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:dual_slider color="#66CC66" background="silver" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:sim_speed_slider color="black" background="white"/>
+				<isee:time_slider color="#E95F74" background="silver"/>
+				<isee:pie_input color="black" background="white" font_size="12pt" legend_position="bottom" isee:transparent="false"/>
+				<knob color="#66CC66" background="#E0E0E0" font_size="12pt" label_side="bottom" wrap_title="true"/>
+				<numeric_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<isee:dropdown_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<switch color="black" background="#E0E0E0" font_size="12pt" label_side="top" wrap_title="true" isee:appearance="switch" isee:on_color="green"/>
+				<options color="black" background="white" appearance="radio-buttons" arrangement="vertical"/>
+				<graphical_input color="black" background="#E0E0E0" font_size="12pt" isee:show_hover_tip="true"/>
+				<group_input color="black" background="#E0E0E0" font_size="12pt"/>
+				<lamp color="black" background="white" font_size="9pt"/>
+				<gauge color="black" background="white" font_size="9pt" needle_color="#F09F72" bar_color="#EEEEEE" bar_progress_color="black" appearance="radial" num_major_ticks="11" num_minor_ticks="1" show_numeric_value="true"/>
+				<isee:spatial_map color="black" background="white" font_size="12pt"/>
+				<isee:animation_object color="black" background="white" font_size="12pt"/>
+				<isee:navigation_widget color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="6" appearance="tabs" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:shape color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid" opacity="1" transparent_background="true" corner_radius="1"/>
+				<isee:selector color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
+				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+			</style>
+			<view isee:show_pages="false" background="white" page_width="768" page_height="576" isee:page_cols="82" isee:page_rows="51" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+					<stock color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="45" height="35"/>
+					</stock>
+					<flow color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</flow>
+					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="9pt" label_side="bottom"/>
+					<module color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="55" height="45"/>
+					</module>
+					<aux color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</aux>
+					<group color="red" background="white" font_color="red" font_size="9pt"/>
+					<connector color="#FF007F" background="white" font_color="#FF007F" font_size="9pt" isee:thickness="1"/>
+					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+					<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+					<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+						<isee:series_styles>
+							<isee:series_style color="blue" thickness="1"/>
+							<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF7F00" thickness="1"/>
+							<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF007F" thickness="1"/>
+							<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#C8C8C8" thickness="1"/>
+						</isee:series_styles>
+					</graph>
+					<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				</style>
+				<aux x="343.929" y="51.75" name="total projects"/>
+				<aux x="233" y="740" name="transfer efficacy"/>
+				<aux x="326.929" y="212.75" name="desired project starts"/>
+				<aux x="343.875" y="801.5" name="avg project duration"/>
+				<aux x="311" y="852" name="incose weight"/>
+				<aux x="309" y="701" name="linkage weight"/>
+				<aux x="566.375" y="801.5" name="delay time rd transfer"/>
+				<aux x="490.125" y="826.183" name="stagnation rate base"/>
+				<aux x="712.625" y="260.25" name="solution lifetime"/>
+				<aux x="312.929" y="357.75" name="project proposal propensity"/>
+				<flow label_side="bottom" x="32037.4" y="3282.63" name="new rd project initiation">
+					<pts>
+						<pt x="32037.4" y="0"/>
+						<pt x="32037.4" y="6565.25"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="32142.7" y="6582.75" name="project completion rate">
+					<pts>
+						<pt x="32059.9" y="6582.75"/>
+						<pt x="32237.4" y="6582.75"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="32365.2" y="6582.75" name="solution transfer rate">
+					<pts>
+						<pt x="32282.4" y="6582.75"/>
+						<pt x="32459.9" y="6582.75"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="32259.9" y="6466" name="transfer stagnation rate">
+					<pts>
+						<pt x="32259.9" y="6565.25"/>
+						<pt x="32259.9" y="6345.75"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="47552.2" y="6565.25" name="solution obsolescence rate">
+					<pts>
+						<pt x="32504.9" y="6565.25"/>
+						<pt x="62623.4" y="6565.25"/>
+					</pts>
+				</flow>
+				<aux font_style="italic" font_weight="bold" x="431.694" y="819" name="rd project funding rate"/>
+				<connector uid="1" polarity="+" isee:polarity_placement="outside" angle="355.543">
+					<isee:documentation>Reasoning:
+Available funding dictates how many projects can begin.
+
+Polarity Reasoning: 
+Higher funding directly increases starts.</isee:documentation>
+					<isee:reasoning>Available funding dictates how many projects can begin.</isee:reasoning>
+					<isee:polarity_reasoning>Higher funding directly increases starts.</isee:polarity_reasoning>
+					<from>rd_project_funding_rate</from>
+					<to>new_rd_project_initiation</to>
+				</connector>
+				<connector uid="4" polarity="-" isee:polarity_placement="outside" angle="349.696">
+					<isee:documentation>Reasoning:
+Longer project execution slows completion velocity.
+
+Polarity Reasoning: 
+Reduces completion rate.</isee:documentation>
+					<isee:reasoning>Longer project execution slows completion velocity.</isee:reasoning>
+					<isee:polarity_reasoning>Reduces completion rate.</isee:polarity_reasoning>
+					<from>avg_project_duration</from>
+					<to>project_completion_rate</to>
+				</connector>
+				<connector uid="5" polarity="+" isee:polarity_placement="outside" angle="124.854">
+					<isee:documentation>Reasoning:
+Weight scales the impact of systems engineering on transfer efficacy.
+
+Polarity Reasoning: 
+Positive contribution to transfer efficacy.</isee:documentation>
+					<isee:reasoning>Weight scales the impact of systems engineering on transfer efficacy.</isee:reasoning>
+					<isee:polarity_reasoning>Positive contribution to transfer efficacy.</isee:polarity_reasoning>
+					<from>incose_weight</from>
+					<to>transfer_efficacy</to>
+				</connector>
+				<connector uid="7" polarity="+" isee:polarity_placement="outside" angle="207.165">
+					<isee:documentation>Reasoning:
+Weight scales institutional linkage importance.
+
+Polarity Reasoning: 
+Positive contribution to efficacy.</isee:documentation>
+					<isee:reasoning>Weight scales institutional linkage importance.</isee:reasoning>
+					<isee:polarity_reasoning>Positive contribution to efficacy.</isee:polarity_reasoning>
+					<from>linkage_weight</from>
+					<to>transfer_efficacy</to>
+				</connector>
+				<connector uid="10" polarity="+" isee:polarity_placement="outside" angle="349.694">
+					<isee:documentation>Reasoning:
+Higher efficacy converts candidates into deployed technologies faster.
+
+Polarity Reasoning: 
+Increases transfer rate.</isee:documentation>
+					<isee:reasoning>Higher efficacy converts candidates into deployed technologies faster.</isee:reasoning>
+					<isee:polarity_reasoning>Increases transfer rate.</isee:polarity_reasoning>
+					<from>transfer_efficacy</from>
+					<to>solution_transfer_rate</to>
+				</connector>
+				<connector uid="11" polarity="-" isee:polarity_placement="outside" angle="349.696">
+					<isee:documentation>Reasoning:
+Bureaucratic and commercialization delays retard transfer speed.
+
+Polarity Reasoning: 
+Reduces transfer rate.</isee:documentation>
+					<isee:reasoning>Bureaucratic and commercialization delays retard transfer speed.</isee:reasoning>
+					<isee:polarity_reasoning>Reduces transfer rate.</isee:polarity_reasoning>
+					<from>delay_time_rd_transfer</from>
+					<to>solution_transfer_rate</to>
+				</connector>
+				<connector uid="13" polarity="+" isee:polarity_placement="outside" angle="349.934">
+					<isee:documentation>Reasoning:
+Baseline shelving probability directly governs abandonment.
+
+Polarity Reasoning: 
+Increases stagnation losses.</isee:documentation>
+					<isee:reasoning>Baseline shelving probability directly governs abandonment.</isee:reasoning>
+					<isee:polarity_reasoning>Increases stagnation losses.</isee:polarity_reasoning>
+					<from>stagnation_rate_base</from>
+					<to>transfer_stagnation_rate</to>
+				</connector>
+				<connector uid="15" polarity="-" isee:polarity_placement="outside" angle="352.334">
+					<isee:documentation>Reasoning:
+Durable technologies remain viable longer before retiring.
+
+Polarity Reasoning: 
+Longer lifetime slows annual obsolescence rate.</isee:documentation>
+					<isee:reasoning>Durable technologies remain viable longer before retiring.</isee:reasoning>
+					<isee:polarity_reasoning>Longer lifetime slows annual obsolescence rate.</isee:polarity_reasoning>
+					<from>solution_lifetime</from>
+					<to>solution_obsolescence_rate</to>
+				</connector>
+				<connector uid="17" angle="84.4851">
+					<from>project_proposal_propensity</from>
+					<to>desired_project_starts</to>
+				</connector>
+				<aux x="16961.5" y="6502.75" name="avg cost per project"/>
+				<aux x="17181" y="219" name="ref solutions half sat"/>
+				<stock x="32037.4" y="6582.75" name="rd projects pipeline"/>
+				<stock x="32259.9" y="6582.75" name="transferred solutions"/>
+				<stock x="32482.4" y="6582.75" name="active industrial solutions"/>
+				<connector uid="23" angle="37.0568">
+					<from>avg_cost_per_project</from>
+					<to>new_rd_project_initiation</to>
+				</connector>
+				<connector uid="24" angle="40">
+					<from>rd_projects_pipeline</from>
+					<to>project_completion_rate</to>
+				</connector>
+				<connector uid="25" angle="40.0665">
+					<from>active_industrial_solutions</from>
+					<to>solution_obsolescence_rate</to>
+				</connector>
+				<connector uid="26" angle="40">
+					<from>transferred_solutions</from>
+					<to>solution_transfer_rate</to>
+				</connector>
+				<connector uid="27" angle="130">
+					<from>transferred_solutions</from>
+					<to>transfer_stagnation_rate</to>
+				</connector>
+				<connector uid="28" angle="168.356">
+					<from>rd_projects_pipeline</from>
+					<to>total_projects</to>
+				</connector>
+				<connector uid="29" angle="168.435">
+					<from>transferred_solutions</from>
+					<to>total_projects</to>
+				</connector>
+				<connector uid="30" angle="168.513">
+					<from>active_industrial_solutions</from>
+					<to>total_projects</to>
+				</connector>
+				<aux font_style="italic" font_weight="bold" x="408.25" y="690.5" name="incose rigor index"/>
+				<aux font_style="italic" font_weight="bold" x="378.911" y="746" name="gov uni ind linkage"/>
+				<stock font_style="italic" font_weight="bold" x="456.845" y="287.729" name="active sti talent"/>
+				<connector uid="31" angle="150.009">
+					<from>active_sti_talent</from>
+					<to>desired_project_starts</to>
+				</connector>
+				<connector uid="32" angle="195.773">
+					<from>incose_rigor_index</from>
+					<to>transfer_efficacy</to>
+				</connector>
+				<connector uid="33" angle="177.645">
+					<from>gov_uni_ind_linkage</from>
+					<to>transfer_efficacy</to>
+				</connector>
+			</view>
+		</views>
+	</model>
+	<model name="Sector_4_Fiscal_Liquidity_and_Rationing">
+		<variables>
+			<aux name="rd project funding demand" ai_state="C">
+				<doc>Capital demanded to underwrite all proposed R&amp;D projects.</doc>
+				<eqn>desired_project_starts*avg_cost_per_project</eqn>
+				<units>Million_USD/Year</units>
+			</aux>
+			<aux name="talent program funding demand" ai_state="C">
+				<doc>Fiscal resources required to enroll desired new talent cohorts.</doc>
+				<eqn>desired_talent_intake*cost_per_talent_trained</eqn>
+				<units>Million_USD/Year</units>
+			</aux>
+			<aux name="total funding demand" ai_state="C">
+				<doc>Aggregate budgetary demands submitted to the national STI agency.</doc>
+				<eqn>rd_project_funding_demand+talent_program_funding_demand</eqn>
+				<units>Million_USD/Year</units>
+			</aux>
+			<aux name="max affordable spending" ai_state="C">
+				<doc>Ceiling on sustainable annual disbursements to prevent liquidity exhaustion.</doc>
+				<eqn>rd_budget_stock/budget_min_liquidity_time</eqn>
+				<units>Million_USD/Year</units>
+			</aux>
+			<aux name="budget execution ratio" ai_state="C">
+				<doc>Rationing fraction representing the proportion of submitted STI requests that can be disbursed.</doc>
+				<eqn>MIN(1,(max_affordable_spending*budget_execution_efficiency)/MAX(min_demand_floor,total_funding_demand))</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="gdp rd allocation target" ai_state="C">
+				<doc>Share of GDP allocated to R&amp;D.</doc>
+				<eqn>0.0029</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="external rd funding base" ai_state="C">
+				<doc>External R&amp;D funding.</doc>
+				<eqn>80</eqn>
+				<units>Million_USD/Year</units>
+			</aux>
+			<aux name="budget min liquidity time" ai_state="C">
+				<doc>Minimum liquidity horizon.</doc>
+				<eqn>0.5</eqn>
+				<units>Year</units>
+			</aux>
+			<aux name="budget execution efficiency" ai_state="C">
+				<doc>Fraction of affordable spending executable.</doc>
+				<eqn>0.75</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="min demand floor" ai_state="C">
+				<doc>Floor on funding demand to avoid division by zero.</doc>
+				<eqn>0.001</eqn>
+				<units>Million_USD/Year</units>
+			</aux>
+			<flow name="gdp contribution to rd" ai_state="C">
+				<doc>National budgetary allocations dedicated to research and development tied to GDP scale.</doc>
+				<eqn>gdp*gdp_rd_allocation_target</eqn>
+				<non_negative/>
+				<units>Million_USD/Year</units>
+			</flow>
+			<flow name="external rd funding" ai_state="C">
+				<doc>Inflows from international cooperation, royalities, and multilateral development funds.</doc>
+				<eqn>external_rd_funding_base</eqn>
+				<non_negative/>
+				<units>Million_USD/Year</units>
+			</flow>
+			<flow name="rd project funding rate" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Actual fiscal capital disbursed to execute approved research projects.</doc>
+				<eqn>rd_project_funding_demand*budget_execution_ratio</eqn>
+				<non_negative/>
+				<units>Million_USD/Year</units>
+			</flow>
+			<flow name="talent program funding rate" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Actual fiscal capital disbursed to fund postgraduate trainees and doctoral grants.</doc>
+				<eqn>talent_program_funding_demand*budget_execution_ratio</eqn>
+				<non_negative/>
+				<units>Million_USD/Year</units>
+			</flow>
+			<stock name="rd budget stock" ai_state="C">
+				<doc>R&amp;D budget liquidity.</doc>
+				<eqn>450</eqn>
+				<inflow>gdp_contribution_to_rd</inflow>
+				<inflow>external_rd_funding</inflow>
+				<outflow>rd_project_funding_rate</outflow>
+				<outflow>talent_program_funding_rate</outflow>
+				<units>Million_USD</units>
+			</stock>
+			<stock name="gdp" ai_state="C" access="input">
+				<doc>National gross domestic product evolving as a continuous stock.</doc>
+				<eqn>293480</eqn>
+				<units>Million_USD/Year</units>
+			</stock>
+			<aux name="desired project starts" ai_state="C" access="input">
+				<doc>Volume of new project proposals formulated by the domestic researcher workforce.</doc>
+				<eqn>{Enter equation for use when not hooked up to other models}</eqn>
+				<units>Projects/Year</units>
+			</aux>
+			<aux name="desired talent intake" ai_state="C" access="input">
+				<doc>Target annual recruitment of advanced students scaled by ecosystem prestige and attractiveness.</doc>
+				<eqn>{Enter equation for use when not hooked up to other models}</eqn>
+				<units>People/Year</units>
+			</aux>
+			<aux name="cost per talent trained" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Cost per trained person.</doc>
+				<eqn>0.205</eqn>
+				<units>Million_USD/People</units>
+			</aux>
+			<stock name="active sti talent" ai_state="C" access="input">
+				<doc>STI talent active domestically.</doc>
+				<eqn>3550</eqn>
+				<units>People</units>
+			</stock>
+			<aux name="avg cost per project" ai_state="C" access="input">
+				<doc>Average cost per R&amp;D project.</doc>
+				<eqn>2.1187</eqn>
+				<units>Million_USD/Projects</units>
+			</aux>
+		</variables>
+		<views>
+			<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+				<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+				<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+				<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+					<isee:series_styles>
+						<isee:series_style color="blue" thickness="1"/>
+						<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF7F00" thickness="1"/>
+						<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF007F" thickness="1"/>
+						<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#C8C8C8" thickness="1"/>
+					</isee:series_styles>
+				</graph>
+				<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				<button color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595"/>
+				<isee:annotation color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595" popup_corner_radius="0" popup_background_color="#FFFECF"/>
+				<slider color="#0075FF" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:stacked_container color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="0" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:dual_slider color="#66CC66" background="silver" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:sim_speed_slider color="black" background="white"/>
+				<isee:time_slider color="#E95F74" background="silver"/>
+				<isee:pie_input color="black" background="white" font_size="12pt" legend_position="bottom" isee:transparent="false"/>
+				<knob color="#66CC66" background="#E0E0E0" font_size="12pt" label_side="bottom" wrap_title="true"/>
+				<numeric_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<isee:dropdown_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<switch color="black" background="#E0E0E0" font_size="12pt" label_side="top" wrap_title="true" isee:appearance="switch" isee:on_color="green"/>
+				<options color="black" background="white" appearance="radio-buttons" arrangement="vertical"/>
+				<graphical_input color="black" background="#E0E0E0" font_size="12pt" isee:show_hover_tip="true"/>
+				<group_input color="black" background="#E0E0E0" font_size="12pt"/>
+				<lamp color="black" background="white" font_size="9pt"/>
+				<gauge color="black" background="white" font_size="9pt" needle_color="#F09F72" bar_color="#EEEEEE" bar_progress_color="black" appearance="radial" num_major_ticks="11" num_minor_ticks="1" show_numeric_value="true"/>
+				<isee:spatial_map color="black" background="white" font_size="12pt"/>
+				<isee:animation_object color="black" background="white" font_size="12pt"/>
+				<isee:navigation_widget color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="6" appearance="tabs" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:shape color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid" opacity="1" transparent_background="true" corner_radius="1"/>
+				<isee:selector color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
+				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+			</style>
+			<view isee:show_pages="false" background="white" page_width="768" page_height="576" isee:page_cols="5" isee:page_rows="10" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+					<stock color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="45" height="35"/>
+					</stock>
+					<flow color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</flow>
+					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="9pt" label_side="bottom"/>
+					<module color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="55" height="45"/>
+					</module>
+					<aux color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</aux>
+					<group color="red" background="white" font_color="red" font_size="9pt"/>
+					<connector color="#FF007F" background="white" font_color="#FF007F" font_size="9pt" isee:thickness="1"/>
+					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+					<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+					<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+						<isee:series_styles>
+							<isee:series_style color="blue" thickness="1"/>
+							<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF7F00" thickness="1"/>
+							<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF007F" thickness="1"/>
+							<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#C8C8C8" thickness="1"/>
+						</isee:series_styles>
+					</graph>
+					<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				</style>
+				<aux x="412.625" y="368.5" name="rd project funding demand"/>
+				<aux x="502.625" y="634.5" name="talent program funding demand"/>
+				<aux x="563.625" y="470.5" name="total funding demand"/>
+				<aux x="872.625" y="466.5" name="max affordable spending"/>
+				<aux x="716.625" y="407.5" name="budget execution ratio"/>
+				<aux x="796.75" y="379.75" name="gdp rd allocation target"/>
+				<aux x="849.375" y="691.25" name="external rd funding base"/>
+				<aux x="1010.63" y="420.5" name="budget min liquidity time"/>
+				<aux x="717.625" y="566.5" name="budget execution efficiency"/>
+				<aux x="806.625" y="287.5" name="min demand floor"/>
+				<flow label_side="bottom" x="878.375" y="588.75" name="gdp contribution to rd">
+					<pts>
+						<pt x="815.875" y="588.75"/>
+						<pt x="940.875" y="588.75"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="878.375" y="632.25" name="external rd funding">
+					<pts>
+						<pt x="815.875" y="632.25"/>
+						<pt x="940.875" y="632.25"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="1058.88" y="588.75" name="rd project funding rate">
+					<pts>
+						<pt x="1008.38" y="588.75"/>
+						<pt x="1133.38" y="588.75"/>
+					</pts>
+				</flow>
+				<flow label_side="bottom" x="1058.88" y="632.25" name="talent program funding rate">
+					<pts>
+						<pt x="1008.38" y="632.25"/>
+						<pt x="1133.38" y="632.25"/>
+					</pts>
+				</flow>
+				<stock x="940.875" y="584.25" width="67.5" height="52.5" name="rd budget stock"/>
+				<stock font_style="italic" font_weight="bold" x="901" y="379.75" name="gdp"/>
+				<aux font_style="italic" font_weight="bold" x="448.625" y="511.5" name="desired project starts"/>
+				<aux font_style="italic" font_weight="bold" x="374.625" y="712.5" name="desired talent intake"/>
+				<connector uid="1" polarity="+" isee:polarity_placement="outside" angle="263.822">
+					<isee:documentation>Reasoning:
+Higher GDP creates a larger fiscal baseline for statutory STI allocations.
+
+Polarity Reasoning: 
+Expands public contribution.</isee:documentation>
+					<isee:reasoning>Higher GDP creates a larger fiscal baseline for statutory STI allocations.</isee:reasoning>
+					<isee:polarity_reasoning>Expands public contribution.</isee:polarity_reasoning>
+					<from>gdp</from>
+					<to>gdp_contribution_to_rd</to>
+				</connector>
+				<connector uid="2" polarity="+" isee:polarity_placement="outside" angle="291.333">
+					<isee:documentation>Reasoning:
+A higher targeted policy fraction increases annual budget allocation.
+
+Polarity Reasoning: 
+Direct positive link.</isee:documentation>
+					<isee:reasoning>A higher targeted policy fraction increases annual budget allocation.</isee:reasoning>
+					<isee:polarity_reasoning>Direct positive link.</isee:polarity_reasoning>
+					<from>gdp_rd_allocation_target</from>
+					<to>gdp_contribution_to_rd</to>
+				</connector>
+				<connector uid="3" polarity="+" isee:polarity_placement="outside" angle="63.8247">
+					<isee:documentation>Reasoning:
+Baseline external grants set the inflow level.
+
+Polarity Reasoning: 
+Increases external funding.</isee:documentation>
+					<isee:reasoning>Baseline external grants set the inflow level.</isee:reasoning>
+					<isee:polarity_reasoning>Increases external funding.</isee:polarity_reasoning>
+					<from>external_rd_funding_base</from>
+					<to>external_rd_funding</to>
+				</connector>
+				<connector uid="4" polarity="+" isee:polarity_placement="outside" angle="104.13">
+					<isee:documentation>Reasoning:
+More research proposals increase financial capital demand.
+
+Polarity Reasoning: 
+Increases project funding demand.</isee:documentation>
+					<isee:reasoning>More research proposals increase financial capital demand.</isee:reasoning>
+					<isee:polarity_reasoning>Increases project funding demand.</isee:polarity_reasoning>
+					<from>desired_project_starts</from>
+					<to>rd_project_funding_demand</to>
+				</connector>
+				<connector uid="6" polarity="+" isee:polarity_placement="outside" angle="31.3571">
+					<isee:documentation>Reasoning:
+Higher desired enrollment raises scholarship and training demand.
+
+Polarity Reasoning: 
+Increases talent funding demand.</isee:documentation>
+					<isee:reasoning>Higher desired enrollment raises scholarship and training demand.</isee:reasoning>
+					<isee:polarity_reasoning>Increases talent funding demand.</isee:polarity_reasoning>
+					<from>desired_talent_intake</from>
+					<to>talent_program_funding_demand</to>
+				</connector>
+				<connector uid="8" polarity="+" isee:polarity_placement="outside" angle="325.961">
+					<isee:documentation>Reasoning:
+Project demand is an additive component of total funding demand.
+
+Polarity Reasoning: 
+Increases total demand.</isee:documentation>
+					<isee:reasoning>Project demand is an additive component of total funding demand.</isee:reasoning>
+					<isee:polarity_reasoning>Increases total demand.</isee:polarity_reasoning>
+					<from>rd_project_funding_demand</from>
+					<to>total_funding_demand</to>
+				</connector>
+				<connector uid="9" polarity="+" isee:polarity_placement="outside" angle="69.5973">
+					<isee:documentation>Reasoning:
+Talent demand is an additive component of total funding demand.
+
+Polarity Reasoning: 
+Increases total demand.</isee:documentation>
+					<isee:reasoning>Talent demand is an additive component of total funding demand.</isee:reasoning>
+					<isee:polarity_reasoning>Increases total demand.</isee:polarity_reasoning>
+					<from>talent_program_funding_demand</from>
+					<to>total_funding_demand</to>
+				</connector>
+				<connector uid="10" polarity="+" isee:polarity_placement="outside" angle="105.311">
+					<isee:documentation>Reasoning:
+Larger budget reserves permit higher sustainable annual disbursement rates.
+
+Polarity Reasoning: 
+Increases maximum affordable spending.</isee:documentation>
+					<isee:reasoning>Larger budget reserves permit higher sustainable annual disbursement rates.</isee:reasoning>
+					<isee:polarity_reasoning>Increases maximum affordable spending.</isee:polarity_reasoning>
+					<from>rd_budget_stock</from>
+					<to>max_affordable_spending</to>
+				</connector>
+				<connector uid="11" polarity="-" isee:polarity_placement="outside" angle="198.435">
+					<isee:documentation>Reasoning:
+More conservative reserve time horizons constrain annual spending caps.
+
+Polarity Reasoning: 
+Decreases spending cap.</isee:documentation>
+					<isee:reasoning>More conservative reserve time horizons constrain annual spending caps.</isee:reasoning>
+					<isee:polarity_reasoning>Decreases spending cap.</isee:polarity_reasoning>
+					<from>budget_min_liquidity_time</from>
+					<to>max_affordable_spending</to>
+				</connector>
+				<connector uid="12" polarity="+" isee:polarity_placement="outside" angle="139.283">
+					<isee:documentation>Reasoning:
+Higher available capital ceiling relative to demand improves execution capacity.
+
+Polarity Reasoning: 
+Increases execution ratio.</isee:documentation>
+					<isee:reasoning>Higher available capital ceiling relative to demand improves execution capacity.</isee:reasoning>
+					<isee:polarity_reasoning>Increases execution ratio.</isee:polarity_reasoning>
+					<from>max_affordable_spending</from>
+					<to>budget_execution_ratio</to>
+				</connector>
+				<connector uid="13" polarity="+" isee:polarity_placement="outside" angle="90.3603">
+					<isee:documentation>Reasoning:
+Administrative competence allows higher realization of available spending caps.
+
+Polarity Reasoning: 
+Increases execution ratio.</isee:documentation>
+					<isee:reasoning>Administrative competence allows higher realization of available spending caps.</isee:reasoning>
+					<isee:polarity_reasoning>Increases execution ratio.</isee:polarity_reasoning>
+					<from>budget_execution_efficiency</from>
+					<to>budget_execution_ratio</to>
+				</connector>
+				<connector uid="14" polarity="-" isee:polarity_placement="outside" angle="233.13">
+					<isee:documentation>Reasoning:
+Floor parameter acts as denominator lower bound.
+
+Polarity Reasoning: 
+Higher floor reduces execution ratio.</isee:documentation>
+					<isee:reasoning>Floor parameter acts as denominator lower bound.</isee:reasoning>
+					<isee:polarity_reasoning>Higher floor reduces execution ratio.</isee:polarity_reasoning>
+					<from>min_demand_floor</from>
+					<to>budget_execution_ratio</to>
+				</connector>
+				<connector uid="15" polarity="-" isee:polarity_placement="outside" angle="22.3801">
+					<isee:documentation>Reasoning:
+Excess demand relative to fiscal liquidity forces rationing of awards.
+
+Polarity Reasoning: 
+Increases competition and reduces execution fraction.</isee:documentation>
+					<isee:reasoning>Excess demand relative to fiscal liquidity forces rationing of awards.</isee:reasoning>
+					<isee:polarity_reasoning>Increases competition and reduces execution fraction.</isee:polarity_reasoning>
+					<from>total_funding_demand</from>
+					<to>budget_execution_ratio</to>
+				</connector>
+				<connector uid="16" angle="225.637">
+					<from>
+						<alias uid="17"/>
+					</from>
+					<to>rd_project_funding_rate</to>
+				</connector>
+				<connector uid="18" polarity="+" isee:polarity_placement="outside" angle="288.798">
+					<isee:documentation>Reasoning:
+The execution ratio scales requested project demand into actual disbursements.
+
+Polarity Reasoning: 
+Higher execution ratio increases funded project outlays.</isee:documentation>
+					<isee:reasoning>The execution ratio scales requested project demand into actual disbursements.</isee:reasoning>
+					<isee:polarity_reasoning>Higher execution ratio increases funded project outlays.</isee:polarity_reasoning>
+					<from>
+						<alias uid="19"/>
+					</from>
+					<to>rd_project_funding_rate</to>
+				</connector>
+				<connector uid="20" angle="80.7539">
+					<from>
+						<alias uid="21"/>
+					</from>
+					<to>talent_program_funding_rate</to>
+				</connector>
+				<connector uid="22" polarity="+" isee:polarity_placement="outside" angle="134.363">
+					<isee:documentation>Reasoning:
+The execution ratio scales requested talent allocations into actual awards.
+
+Polarity Reasoning: 
+Higher execution ratio expands scholarship disbursements.</isee:documentation>
+					<isee:reasoning>The execution ratio scales requested talent allocations into actual awards.</isee:reasoning>
+					<isee:polarity_reasoning>Higher execution ratio expands scholarship disbursements.</isee:polarity_reasoning>
+					<from>
+						<alias uid="23"/>
+					</from>
+					<to>talent_program_funding_rate</to>
+				</connector>
+				<aux x="488.625" y="784.5" name="cost per talent trained"/>
+				<connector uid="24" angle="84.6678">
+					<from>cost_per_talent_trained</from>
+					<to>talent_program_funding_demand</to>
+				</connector>
+				<stock font_style="italic" font_weight="bold" x="824.625" y="520.5" name="active sti talent"/>
+				<aux font_style="italic" font_weight="bold" x="412.625" y="579" name="avg cost per project"/>
+				<connector uid="25" angle="90">
+					<from>avg_cost_per_project</from>
+					<to>rd_project_funding_demand</to>
+				</connector>
+				<alias color="blue" background="white" font_style="italic" uid="17" x="1116.63" y="511.5" width="18" height="18">
+					<shape type="circle" radius="18"/>
+					<of>rd_project_funding_demand</of>
+				</alias>
+				<alias color="blue" background="white" font_style="italic" uid="21" x="1030.63" y="741.5" width="18" height="18">
+					<shape type="circle" radius="18"/>
+					<of>talent_program_funding_demand</of>
+				</alias>
+				<alias color="blue" background="white" font_style="italic" uid="19" x="1009.63" y="461.5" width="18" height="18">
+					<shape type="circle" radius="18"/>
+					<of>budget_execution_ratio</of>
+				</alias>
+				<alias color="blue" background="white" font_style="italic" uid="23" x="1116.63" y="691.5" width="18" height="18">
+					<shape type="circle" radius="18"/>
+					<of>budget_execution_ratio</of>
+				</alias>
+			</view>
+		</views>
+	</model>
+	<model name="Sector_5_Macro_Policy_and_Calibration">
+		<variables>
+			<aux name="innovative firm share" ai_state="C">
+				<doc>Proportion of total productive enterprises that operate as mature innovative firms.</doc>
+				<eqn>innovative_firms / MAX(1, total_firms)</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="gdp growth rate" ai_state="C">
+				<doc>Real annual economic growth rate boosted endogenously by the penetration of innovative firms.</doc>
+				<eqn>baseline_gdp_growth_rate+innovation_gdp_elasticity*innovative_firm_share</eqn>
+				<units>1/Year</units>
+			</aux>
+			<stock name="gdp" ai_state="C" access="output" isee:autocreated="true">
+				<doc>National gross domestic product evolving as a continuous stock (eliminates retroactive EXP artifact).</doc>
+				<eqn>gdp_initial</eqn>
+				<inflow>gdp_growth</inflow>
+				<units>Million_USD/Year</units>
+			</stock>
+			<flow name="gdp growth" ai_state="C">
+				<doc>Annual continuous GDP expansion driven by baseline growth and innovative firm share.</doc>
+				<eqn>gdp*gdp_growth_rate</eqn>
+				<non_negative/>
+				<units>Million_USD/(Year*Year)</units>
+			</flow>
+			<aux name="sti attractiveness factor" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Composite ecosystem attractiveness index driving researcher retention, repatriation, and student aspirations.</doc>
+				<eqn>attractiveness_floor+attractiveness_saturation_weight*(active_industrial_solutions/ref_solutions_half_sat)/(1+active_industrial_solutions/ref_solutions_half_sat)+attractiveness_innovation_weight*innovative_firm_share</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="model start year" ai_state="C">
+				<doc>Calendar year at which GDP equals gdp_initial.</doc>
+				<eqn>2015</eqn>
+				<units>Year</units>
+			</aux>
+			<aux name="gdp initial" ai_state="C">
+				<doc>GDP in the start year (2015).</doc>
+				<eqn>293480</eqn>
+				<units>Million_USD/Year</units>
+			</aux>
+			<aux name="baseline gdp growth rate" ai_state="C">
+				<doc>Baseline GDP growth rate independent of innovation.</doc>
+				<eqn>0.028</eqn>
+				<units>1/Year</units>
+			</aux>
+			<aux name="innovation gdp elasticity" ai_state="C">
+				<doc>Added GDP growth per unit of innovative firm share.</doc>
+				<eqn>0.0207</eqn>
+				<units>1/Year</units>
+			</aux>
+			<aux name="attractiveness floor" ai_state="C">
+				<doc>Minimum attractiveness of the STI system.</doc>
+				<eqn>0.5</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="attractiveness saturation weight" ai_state="C">
+				<doc>Weight of saturating solutions effect on attractiveness.</doc>
+				<eqn>0.5</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="attractiveness innovation weight" ai_state="C">
+				<doc>Weight of innovative firm share on attractiveness.</doc>
+				<eqn>1.0</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="ref rd gdp pct" ai_state="C">
+				<doc>Calibration reference (R&amp;D % of GDP), Time 2005-2025. Placeholder zeros: replace with CSV data 03_calibracion_stella_horizontal_2026_conpes_ctei_colombia.csv.</doc>
+				<eqn>TIME</eqn>
+				<gf>
+					<yscale min="0" max="0.004202"/>
+					<xpts>2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020</xpts>
+					<ypts>0.001656,0.001643,0.001831,0.001954,0.001935,0.001936,0.001984,0.002212,0.002576,0.003032,0.003654,0.002705,0.002611,0.003123,0.00322,0.002894</ypts>
+				</gf>
+				<units>dmnl</units>
+			</aux>
+			<aux name="ref researchers per million" ai_state="C">
+				<doc>Calibration reference (researchers per million), 2005-2025. Placeholder zeros pending CSV import.</doc>
+				<eqn>TIME</eqn>
+				<gf>
+					<yscale min="0" max="104.9"/>
+					<xpts>2013,2014,2015,2016,2017</xpts>
+					<ypts>58.0547,59.0548,70.6693,91.2603,90.2473</ypts>
+				</gf>
+				<units>People</units>
+			</aux>
+			<aux name="ref resident patents" ai_state="C">
+				<doc>Calibration reference (resident patents), 2005-2025. Placeholder zeros pending CSV import.</doc>
+				<eqn>TIME</eqn>
+				<gf>
+					<yscale min="0" max="1270"/>
+					<xpts>2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024</xpts>
+					<ypts>99,142,128,126,128,133,183,213,251,260,321,545,595,415,422,369,432,1104,266,270</ypts>
+				</gf>
+				<units>Projects</units>
+			</aux>
+			<aux name="ref hightech exports pct" ai_state="C">
+				<doc>Calibration reference (high-tech exports %), 2005-2025. Placeholder zeros pending CSV import.</doc>
+				<eqn>TIME</eqn>
+				<gf>
+					<yscale min="0" max="0.1171"/>
+					<xpts>2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024</xpts>
+					<ypts>0.030653,0.040154,0.055542,0.053625,0.046796,0.056774,0.077684,0.081198,0.098493,0.101858,0.089624,0.072214,0.090485,0.099136,0.082091,0.084018,0.085999,0.090284</ypts>
+				</gf>
+				<units>dmnl</units>
+			</aux>
+			<aux name="ref real gdp growth pct" ai_state="C">
+				<doc>Calibration reference (real GDP growth %), 2005-2025. Placeholder zeros pending CSV import.</doc>
+				<eqn>TIME</eqn>
+				<gf>
+					<yscale min="-0.07186" max="0.1242"/>
+					<xpts>2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025</xpts>
+					<ypts>0.048288,0.067169,0.067382,0.032834,0.011396,0.044947,0.069479,0.039126,0.05134,0.04499,0.029559,0.020874,0.013594,0.025643,0.031869,-0.071859,0.108012,0.073283,0.008418,0.014933,0.02642</ypts>
+				</gf>
+				<units>1/Year</units>
+			</aux>
+			<aux name="ref tertiary enrollment pct" ai_state="C">
+				<doc>Calibration reference (tertiary enrollment %), 2005-2025. Placeholder zeros pending CSV import.</doc>
+				<eqn>TIME</eqn>
+				<gf>
+					<yscale min="0" max="0.6818"/>
+					<xpts>2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022</xpts>
+					<ypts>0.32254,0.343662,0.354785,0.379448,0.395088,0.415297,0.452873,0.47467,0.507475,0.531794,0.547961,0.571437,0.58396,0.573205,0.566663,0.557331,0.583159,0.592901</ypts>
+				</gf>
+				<units>dmnl</units>
+			</aux>
+			<aux name="incose rigor index" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Systems engineering rigor policy lever (0-1).</doc>
+				<eqn>0.6</eqn>
+				<units>dmnl</units>
+			</aux>
+			<aux name="gov uni ind linkage" ai_state="C" access="output" isee:autocreated="true">
+				<doc>Government-university-industry linkage policy lever (0-1).</doc>
+				<eqn>0.5</eqn>
+				<units>dmnl</units>
+			</aux>
+			<stock name="innovative firms" ai_state="C" access="input">
+				<doc>Innovative firms.</doc>
+				<eqn>8000</eqn>
+				<units>Firms</units>
+			</stock>
+			<aux name="total firms" ai_state="C" access="input">
+				<doc>Total firms; changes only via creation and exit.</doc>
+				<eqn>{Enter equation for use when not hooked up to other models}</eqn>
+				<units>Firms</units>
+			</aux>
+			<stock name="active industrial solutions" ai_state="C" access="input">
+				<doc>Solutions in industrial use.</doc>
+				<eqn>600</eqn>
+				<units>Projects</units>
+			</stock>
+			<aux name="ref solutions half sat" ai_state="C" access="input">
+				<doc>Half-saturation level of active solutions.</doc>
+				<eqn>600.0</eqn>
+				<units>Projects</units>
+			</aux>
+		</variables>
+		<views>
+			<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+				<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+				<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+				<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+					<isee:series_styles>
+						<isee:series_style color="blue" thickness="1"/>
+						<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF7F00" thickness="1"/>
+						<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#FF007F" thickness="1"/>
+						<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+						<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+						<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+						<isee:series_style color="#C8C8C8" thickness="1"/>
+					</isee:series_styles>
+				</graph>
+				<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				<button color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595"/>
+				<isee:annotation color="black" background="#E0E0E0" font_size="12pt" border_width="thin" border_style="solid" transparent="false" corner_radius="0" isee:flat="false" icon_side="top" isee:highlight_on_hover="false" isee:highlight_color="#959595" popup_corner_radius="0" popup_background_color="#FFFECF"/>
+				<slider color="#0075FF" background="#E0E0E0" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" vertical="false" isee:fancy_appearance="false" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:stacked_container color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="0" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:dual_slider color="#66CC66" background="silver" font_size="12pt" num_ticks="3" label_side="top" wrap_title="true" isee:show_hover_tip="when_deciding" input_expands="true" input_width="100"/>
+				<isee:sim_speed_slider color="black" background="white"/>
+				<isee:time_slider color="#E95F74" background="silver"/>
+				<isee:pie_input color="black" background="white" font_size="12pt" legend_position="bottom" isee:transparent="false"/>
+				<knob color="#66CC66" background="#E0E0E0" font_size="12pt" label_side="bottom" wrap_title="true"/>
+				<numeric_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<isee:dropdown_input color="black" background="#E0E0E0" font_size="12pt" label_side="left" wrap_title="true" input_expands="false" input_width="100"/>
+				<switch color="black" background="#E0E0E0" font_size="12pt" label_side="top" wrap_title="true" isee:appearance="switch" isee:on_color="green"/>
+				<options color="black" background="white" appearance="radio-buttons" arrangement="vertical"/>
+				<graphical_input color="black" background="#E0E0E0" font_size="12pt" isee:show_hover_tip="true"/>
+				<group_input color="black" background="#E0E0E0" font_size="12pt"/>
+				<lamp color="black" background="white" font_size="9pt"/>
+				<gauge color="black" background="white" font_size="9pt" needle_color="#F09F72" bar_color="#EEEEEE" bar_progress_color="black" appearance="radial" num_major_ticks="11" num_minor_ticks="1" show_numeric_value="true"/>
+				<isee:spatial_map color="black" background="white" font_size="12pt"/>
+				<isee:animation_object color="black" background="white" font_size="12pt"/>
+				<isee:navigation_widget color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" padding="6 8" border_color="#999999" border_width="thin" border_style="solid" item_spacing="6" appearance="tabs" corner_radius="4" selected_item_color="black" selected_item_background="white" item_background="#DDDDDD" transparent_bg="false"/>
+				<isee:shape color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid" opacity="1" transparent_background="true" corner_radius="1"/>
+				<isee:selector color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+				<isee:iframe color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt" border_width="thin" border_style="solid"/>
+				<isee:financial_table color="black" background="#E0E0E0" text_align="right" font_size="12pt" hide_border="false" auto_fit="true" first_column_width="250" other_column_width="100" header_font_style="normal" header_font_weight="bold" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="14pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+			</style>
+			<view isee:show_pages="false" background="white" page_width="768" page_height="576" isee:page_cols="2" isee:page_rows="2" isee:popup_graphs_are_comparative="true" isee:enable_non_negative_highlights="false" type="stock_flow">
+				<style color="black" background="white" font_style="normal" font_weight="normal" text_decoration="none" text_align="center" vertical_text_align="center" font_color="black" font_family="Arial" font_size="10pt" padding="2" border_color="black" border_width="thin" border_style="none">
+					<stock color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="45" height="35"/>
+					</stock>
+					<flow color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</flow>
+					<isee:placeholder color="#228B22" background="white" font_color="#228B22" font_size="9pt" label_side="bottom"/>
+					<module color="blue" background="white" font_color="blue" font_size="9pt" label_side="top">
+						<shape type="rectangle" width="55" height="45"/>
+					</module>
+					<aux color="blue" background="white" font_color="blue" font_size="9pt" label_side="bottom">
+						<shape type="circle" radius="18"/>
+					</aux>
+					<group color="red" background="white" font_color="red" font_size="9pt"/>
+					<connector color="#FF007F" background="white" font_color="#FF007F" font_size="9pt" isee:thickness="1"/>
+					<text_box color="black" background="white" text_align="left" vertical_text_align="top" font_size="12pt"/>
+					<isee:loop_indicator color="black" background="white" vertical_text_align="top" font_size="12pt"/>
+					<numeric_display color="white" background="white" font_size="12pt" border_width="thin" border_style="solid" isee:transparent="false" isee:show_divider="true" isee:show_bounding_box="true" label_side="left"/>
+					<graph color="black" background="white" font_size="12pt" axis_color="#666666" grid_color="#C8C8C8" isee:graph_area_color="white" legend_position="bottom" isee:transparent="false" isee:hide_border="false" axis_title_font_style="normal" axis_title_font_weight="normal" axis_title_text_decoration="none" axis_title_text_align="center" axis_title_vertical_text_align="center" axis_title_font_color="black" axis_title_font_family="Arial" axis_title_font_size="12pt" axis_title_text_padding="2" axis_title_text_border_color="black" axis_title_text_border_width="thin" axis_title_text_border_style="none" axis_label_font_style="normal" axis_label_font_weight="normal" axis_label_text_decoration="none" axis_label_text_align="center" axis_label_vertical_text_align="center" axis_label_font_color="black" axis_label_font_family="Arial" axis_label_font_size="9pt" axis_label_text_padding="2" axis_label_text_border_color="black" axis_label_text_border_width="thin" axis_label_text_border_style="none">
+						<isee:series_styles>
+							<isee:series_style color="blue" thickness="1"/>
+							<isee:series_style color="red" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="fuchsia" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="#008F44" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF7F00" thickness="1"/>
+							<isee:series_style color="#7F00FF" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#0CA0FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="lime" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#FF007F" thickness="1"/>
+							<isee:series_style color="aqua" thickness="1" pen_style="dot_dashed"/>
+							<isee:series_style color="#F586FF" thickness="1" pen_style="dotted"/>
+							<isee:series_style color="black" thickness="1" pen_style="dashed"/>
+							<isee:series_style color="#C8C8C8" thickness="1"/>
+						</isee:series_styles>
+					</graph>
+					<table color="black" background="#E0E0E0" text_align="right" font_size="12pt" orientation="vertical" wrap_text="false" isee:auto_fit="true" isee:use_alternate_row_colors="false" isee:unlimited_table_length="false" blank_column_width="80" column_width="160" interval="1" report_balances="beginning" report_flows="instantaneous" header_font_style="normal" header_font_weight="normal" header_text_decoration="none" header_text_align="center" header_vertical_text_align="center" header_font_color="black" header_font_family="Arial" header_font_size="12pt" header_text_padding="2" header_text_border_color="black" header_text_border_width="thin" header_text_border_style="none"/>
+				</style>
+				<aux x="711.125" y="460.5" name="innovative firm share"/>
+				<aux x="539.125" y="412.5" name="gdp growth rate"/>
+				<stock x="376.125" y="372.5" name="gdp"/>
+				<flow label_side="bottom" x="295" y="372.5" name="gdp growth">
+					<pts>
+						<pt x="225" y="372.5"/>
+						<pt x="353.625" y="372.5"/>
+					</pts>
+				</flow>
+				<aux x="886.125" y="493.5" name="sti attractiveness factor"/>
+				<aux x="245.125" y="445.5" name="model start year"/>
+				<aux x="459.125" y="493.5" name="gdp initial"/>
+				<aux x="467.125" y="543.5" name="baseline gdp growth rate"/>
+				<aux x="539.125" y="593.5" name="innovation gdp elasticity"/>
+				<aux x="1013.13" y="412.5" name="attractiveness floor"/>
+				<aux x="933.125" y="351.5" name="attractiveness saturation weight"/>
+				<aux x="863.125" y="642.5" name="attractiveness innovation weight"/>
+				<aux x="592.125" y="515.5" name="ref rd gdp pct"/>
+				<aux x="507.125" y="683.5" name="ref researchers per million"/>
+				<aux x="969.125" y="768.5" name="ref resident patents"/>
+				<aux x="726.125" y="712.5" name="ref hightech exports pct"/>
+				<aux x="891.125" y="235.5" name="ref real gdp growth pct"/>
+				<aux x="701.125" y="207.5" name="ref tertiary enrollment pct"/>
+				<connector uid="3" polarity="+" isee:polarity_placement="outside" angle="61.206">
+					<isee:documentation>Reasoning:
+Exogenous baseline growth defines macroeconomic trajectory.
+
+Polarity Reasoning: 
+Direct positive link.</isee:documentation>
+					<isee:reasoning>Exogenous baseline growth defines macroeconomic trajectory.</isee:reasoning>
+					<isee:polarity_reasoning>Direct positive link.</isee:polarity_reasoning>
+					<from>baseline_gdp_growth_rate</from>
+					<to>gdp_growth_rate</to>
+				</connector>
+				<connector uid="4" polarity="+" isee:polarity_placement="outside" angle="90">
+					<isee:documentation>Reasoning:
+Higher elasticity intensifies the growth response to innovative firms.
+
+Polarity Reasoning: 
+Increases growth rate.</isee:documentation>
+					<isee:reasoning>Higher elasticity intensifies the growth response to innovative firms.</isee:reasoning>
+					<isee:polarity_reasoning>Increases growth rate.</isee:polarity_reasoning>
+					<from>innovation_gdp_elasticity</from>
+					<to>gdp_growth_rate</to>
+				</connector>
+				<connector uid="5" polarity="+" isee:polarity_placement="outside" angle="164.407">
+					<isee:documentation>Reasoning:
+Higher prevalence of innovative firms boosts national multi-factor productivity.
+
+Polarity Reasoning: 
+Accelerates real GDP growth.</isee:documentation>
+					<isee:reasoning>Higher prevalence of innovative firms boosts national multi-factor productivity.</isee:reasoning>
+					<isee:polarity_reasoning>Accelerates real GDP growth.</isee:polarity_reasoning>
+					<from>innovative_firm_share</from>
+					<to>gdp_growth_rate</to>
+				</connector>
+				<connector uid="7" polarity="+" isee:polarity_placement="outside" angle="166.212">
+					<isee:documentation>Reasoning:
+Compounded growth rate expands cumulative national product.
+
+Polarity Reasoning: 
+Higher growth rate yields higher GDP.</isee:documentation>
+					<isee:reasoning>Compounded growth rate expands cumulative national product.</isee:reasoning>
+					<isee:polarity_reasoning>Higher growth rate yields higher GDP.</isee:polarity_reasoning>
+					<from>gdp_growth_rate</from>
+					<to>gdp_growth</to>
+				</connector>
+				<connector uid="9" angle="212.53">
+					<from>attractiveness_floor</from>
+					<to>sti_attractiveness_factor</to>
+				</connector>
+				<connector uid="10" polarity="+" isee:polarity_placement="outside" angle="251.686">
+					<isee:documentation>Reasoning:
+Determines the contribution of industrial solutions to ecosystem prestige.
+
+Polarity Reasoning: 
+Increases attractiveness.</isee:documentation>
+					<isee:reasoning>Determines the contribution of industrial solutions to ecosystem prestige.</isee:reasoning>
+					<isee:polarity_reasoning>Increases attractiveness.</isee:polarity_reasoning>
+					<from>attractiveness_saturation_weight</from>
+					<to>sti_attractiveness_factor</to>
+				</connector>
+				<connector uid="13" polarity="+" isee:polarity_placement="outside" angle="81.2249">
+					<isee:documentation>Reasoning:
+Scales the influence of private innovative firm prevalence.
+
+Polarity Reasoning: 
+Increases attractiveness.</isee:documentation>
+					<isee:reasoning>Scales the influence of private innovative firm prevalence.</isee:reasoning>
+					<isee:polarity_reasoning>Increases attractiveness.</isee:polarity_reasoning>
+					<from>attractiveness_innovation_weight</from>
+					<to>sti_attractiveness_factor</to>
+				</connector>
+				<connector uid="14" polarity="+" isee:polarity_placement="outside" angle="349.321">
+					<isee:documentation>Reasoning:
+A dense network of innovative enterprises offers careers and drives overall ecosystem prestige.
+
+Polarity Reasoning: 
+Increases attractiveness.</isee:documentation>
+					<isee:reasoning>A dense network of innovative enterprises offers careers and drives overall ecosystem prestige.</isee:reasoning>
+					<isee:polarity_reasoning>Increases attractiveness.</isee:polarity_reasoning>
+					<from>innovative_firm_share</from>
+					<to>sti_attractiveness_factor</to>
+				</connector>
+				<aux x="690.125" y="510.5" name="incose rigor index"/>
+				<aux x="692.125" y="410.5" name="gov uni ind linkage"/>
+				<stock font_style="italic" font_weight="bold" x="730.125" y="525.5" name="innovative firms"/>
+				<aux font_style="italic" font_weight="bold" x="730.125" y="372.5" name="total firms"/>
+				<stock font_style="italic" font_weight="bold" x="987.484" y="604.073" name="active industrial solutions"/>
+				<aux font_style="italic" font_weight="bold" x="1036.12" y="495.096" name="ref solutions half sat"/>
+				<connector uid="15" angle="132.51">
+					<from>active_industrial_solutions</from>
+					<to>sti_attractiveness_factor</to>
+				</connector>
+				<connector uid="16" angle="179.39">
+					<from>ref_solutions_half_sat</from>
+					<to>sti_attractiveness_factor</to>
+				</connector>
+				<connector uid="17" angle="131.294">
+					<from>innovative_firms</from>
+					<to>innovative_firm_share</to>
+				</connector>
+				<connector uid="18" angle="282.816">
+					<from>total_firms</from>
+					<to>innovative_firm_share</to>
+				</connector>
+				<connector uid="99" angle="150">
+					<from>gdp</from>
+					<to>gdp_growth</to>
+				</connector>
+			</view>
+		</views>
+	</model>
+</xmile>
+
