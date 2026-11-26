@@ -107,22 +107,22 @@
       <div class="chart-box">
         <h3>(a) Active Industrial Solutions (Projects)</h3>
         <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
-        <canvas id="c_sol"></canvas>
+        <canvas id="c_sol" width="520" height="225"></canvas>
       </div>
       <div class="chart-box">
         <h3>(b) Innovative Firms (Firms)</h3>
         <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
-        <canvas id="c_frm"></canvas>
+        <canvas id="c_frm" width="520" height="225"></canvas>
       </div>
       <div class="chart-box">
         <h3>(c) Active STI Talent (People)</h3>
         <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
-        <canvas id="c_tal"></canvas>
+        <canvas id="c_tal" width="520" height="225"></canvas>
       </div>
       <div class="chart-box">
         <h3>(d) R&amp;D Budget Liquidity (Million USD)</h3>
         <div class="legend-mini"><span>&#9473; Selected Scenario</span><span>&#9484; Dashed: Status Quo (01)</span><span>&#9478; Dotted: PND 2026.75</span></div>
-        <canvas id="c_bud"></canvas>
+        <canvas id="c_bud" width="520" height="225"></canvas>
       </div>
     </div>
   </main>
@@ -240,41 +240,42 @@ function drawChart(canvasId, sqRows, polRows, key, color) {
   const ctx = c.getContext('2d');
   if (!ctx) return;
   const rect = c.getBoundingClientRect();
-  const W = rect.width > 20 ? rect.width : 460;
-  const H = rect.height > 20 ? rect.height : 225;
-  const dpr = window.devicePixelRatio || 1;
-  c.width = Math.round(W * dpr);
-  c.height = Math.round(H * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = rect.width > 40 ? rect.width : (c.width || 520);
+  const H = rect.height > 40 ? rect.height : (c.height || 225);
+  c.width = Math.round(W);
+  c.height = Math.round(H);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-  const padL = 48, padR = 14, padT = 14, padB = 26;
-  ctx.clearRect(0, 0, W, H);
+  const padL = 52, padR = 16, padT = 16, padB = 28;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
 
-  const allV = sqRows.map(r => r[key]).concat(polRows.map(r => r[key]));
-  const minV = 0, maxV = Math.max(1, ...allV) * 1.12;
+  const allV = sqRows.map(r => r[key]).concat(polRows.map(r => r[key])).filter(v => isFinite(v));
+  const maxV = Math.max(1, ...allV) * 1.12;
+  const minV = 0;
   const xPos = t => padL + ((t - 2015) / 35) * (W - padL - padR);
   const yPos = v => H - padB - ((v - minV) / (maxV - minV)) * (H - padT - padB);
 
-  ctx.strokeStyle = '#e5ecf4'; ctx.lineWidth = 1; ctx.font = '10px sans-serif'; ctx.fillStyle = '#526071';
+  ctx.strokeStyle = '#e5ecf4'; ctx.lineWidth = 1; ctx.font = '11px sans-serif'; ctx.fillStyle = '#526071';
   for (let i = 0; i <= 4; i++) {
     const val = (maxV / 4) * i, yy = yPos(val);
     ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(W - padR, yy); ctx.stroke();
-    ctx.fillText(val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val.toFixed(0), 4, yy + 3);
+    ctx.fillText(val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val.toFixed(1), 6, yy + 4);
   }
   [2015, 2026, 2035, 2050].forEach(yr => {
-    ctx.fillText(String(yr), xPos(yr) - 12, H - 8);
+    ctx.fillText(String(yr), xPos(yr) - 14, H - 8);
   });
 
   ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = '#94a3b8';
   ctx.beginPath(); ctx.moveTo(xPos(2026.75), padT); ctx.lineTo(xPos(2026.75), H - padB); ctx.stroke();
   ctx.restore();
 
-  ctx.save(); ctx.setLineDash([5, 4]); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1.8;
+  ctx.save(); ctx.setLineDash([6, 4]); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
   ctx.beginPath();
   sqRows.forEach((r, idx) => idx === 0 ? ctx.moveTo(xPos(r.Time), yPos(r[key])) : ctx.lineTo(xPos(r.Time), yPos(r[key])));
   ctx.stroke(); ctx.restore();
 
-  ctx.strokeStyle = color; ctx.lineWidth = 2.4;
+  ctx.strokeStyle = color; ctx.lineWidth = 2.6;
   ctx.beginPath();
   polRows.forEach((r, idx) => idx === 0 ? ctx.moveTo(xPos(r.Time), yPos(r[key])) : ctx.lineTo(xPos(r.Time), yPos(r[key])));
   ctx.stroke();
