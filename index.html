@@ -249,18 +249,6 @@
             rat: step1 && Number.isFinite(step1.ex_rat) ? step1.ex_rat : 0
           });
         }
-        if (s === steps) break;
-        const y2 = y.map((v, i) => Math.max(0, v + 0.5 * dt * (k1[i] || 0)));
-        const step2 = derivs(t + 0.5 * dt, y2, ov);
-        const k2 = step2 && Array.isArray(step2.dy) ? step2.dy : new Array(11).fill(0);
-        const y3 = y.map((v, i) => Math.max(0, v + 0.5 * dt * (k2[i] || 0)));
-        const step3 = derivs(t + 0.5 * dt, y3, ov);
-        const k3 = step3 && Array.isArray(step3.dy) ? step3.dy : new Array(11).fill(0);
-        const y4 = y.map((v, i) => Math.max(0, v + dt * (k3[i] || 0)));
-        const step4 = derivs(t + dt, y4, ov);
-        const k4 = step4 && Array.isArray(step4.dy) ? step4.dy : new Array(11).fill(0);
-        y = y.map((v, i) => Math.max(0, v + (dt / 6) * ((k1[i] || 0) + 2 * (k2[i] || 0) + 2 * (k3[i] || 0) + (k4[i] || 0))));
-      }
       return rows;
     }
 
@@ -345,7 +333,7 @@
       runSim();
     }
 
-    function runSim() {
+    function runSim() { if (!sqBaseline.length) sqBaseline = simulate({});
       if (!sqBaseline.length) sqBaseline = simulate({});
       const rd = parseFloat(document.getElementById("s_rd").value);
       const eff = parseFloat(document.getElementById("s_eff").value);
